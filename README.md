@@ -1,29 +1,92 @@
-# Create T3 App
+<p align="center">
+  <img src="public/logo.png" alt="NukeTune" width="400" />
+</p>
 
-This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
+# NukeTune
 
-## What's next? How do I make an app with this?
+Bulk deletion tool for Microsoft Intune environments. Reset your tenant by removing devices, apps, policies, and configurations in one operation.
 
-We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
+**Live**: [nuketune.vercel.app](https://nuketune.vercel.app)
 
-If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+## Features
 
-- [Next.js](https://nextjs.org)
-- [NextAuth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
-- [Drizzle](https://orm.drizzle.team)
-- [Tailwind CSS](https://tailwindcss.com)
-- [tRPC](https://trpc.io)
+- Delete objects across 25+ Intune categories
+- Multi-cloud support (Commercial, GCC High, DoD, Germany, China)
+- Preview before deletion
+- Progress tracking and deletion logs
+- No app registration required (multitenant)
 
-## Learn More
+## Supported Categories
 
-To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
+| Critical | High | Medium/Low |
+|----------|------|------------|
+| Managed Devices | Device Configuration | Filters |
+| Autopilot Devices | Settings Catalog | Scope Tags |
+| Autopilot Profiles | Compliance Policies | Device Categories |
+| Applications | PowerShell Scripts | Terms and Conditions |
+| Conditional Access | Shell Scripts (macOS) | Notification Templates |
+| | Remediation Scripts | |
+| | App Protection Policies | |
+| | Administrative Templates | |
+| | Security Baselines | |
+| | RBAC Roles & Assignments | |
 
-- [Documentation](https://create.t3.gg/)
-- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available) — Check out these awesome tutorials
+## Usage
 
-You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and contributions are welcome!
+1. Go to [nuketune.vercel.app](https://nuketune.vercel.app)
+2. Click **Sign in with Microsoft**
+3. Select your cloud environment
+4. Authenticate and grant consent (if prompted)
+5. Select categories to delete
+6. Click **Preview Deletion** to review objects
+7. Type `DELETE` to confirm
 
-## How do I deploy this?
+## Requirements
 
-Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
+- Intune Administrator or Global Administrator role
+- Admin consent for required permissions (prompted on first sign-in)
+
+## Required Permissions
+
+| Permission | Purpose |
+|------------|---------|
+| DeviceManagementManagedDevices.ReadWrite.All | Devices |
+| DeviceManagementServiceConfig.ReadWrite.All | Autopilot, enrollment |
+| DeviceManagementConfiguration.ReadWrite.All | Policies, scripts |
+| DeviceManagementApps.ReadWrite.All | Applications |
+| DeviceManagementRBAC.ReadWrite.All | Roles |
+| Policy.ReadWrite.ConditionalAccess | Conditional Access |
+| Policy.Read.All | Policy reading |
+
+## Local Development
+
+```bash
+# Install dependencies
+npm install
+
+# Set environment variables
+cp .env.example .env
+# Edit .env with your values
+
+# Run dev server
+npm run dev
+```
+
+Runs on `http://localhost:4000`
+
+## Environment Variables
+
+```
+NEXT_PUBLIC_MSAL_CLIENT_ID=your-app-id
+NEXT_PUBLIC_MSAL_AUTHORITY=https://login.microsoftonline.com/common
+NEXT_PUBLIC_MSAL_REDIRECT_URI=http://localhost:4000
+NEXT_PUBLIC_CLOUD_ENVIRONMENT=global
+```
+
+## Warning
+
+**This tool performs irreversible deletions.** Only use on test/dev tenants unless you fully understand the consequences. Always back up important configurations before proceeding.
+
+## License
+
+MIT
