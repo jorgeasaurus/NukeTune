@@ -36,6 +36,7 @@ export const loginRequest = {
     "DeviceManagementServiceConfig.ReadWrite.All",
     "DeviceManagementConfiguration.ReadWrite.All",
     "DeviceManagementApps.ReadWrite.All",
+    "DeviceManagementScripts.ReadWrite.All",
     "Policy.ReadWrite.ConditionalAccess",
     "Policy.Read.All",
     "DeviceManagementRBAC.ReadWrite.All",
