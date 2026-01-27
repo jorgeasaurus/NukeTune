@@ -35,6 +35,9 @@ interface NukeTuneState {
   selectAllCategories: () => void;
   deselectAllCategories: () => void;
   setCategoryObjects: (categoryId: string, objects: IntuneObject[]) => void;
+  toggleObjectSelection: (categoryId: string, objectId: string) => void;
+  selectAllObjects: (categoryId: string) => void;
+  deselectAllObjects: (categoryId: string) => void;
   setCategoryLoading: (categoryId: string, loading: boolean) => void;
   setCategoryError: (categoryId: string, error: string | null) => void;
   updateCategoryProgress: (
@@ -125,7 +128,41 @@ export const useNukeTuneStore = create<NukeTuneState>()(
       setCategoryObjects: (categoryId, objects) =>
         set((state) => ({
           categories: state.categories.map((cat) =>
-            cat.category.id === categoryId ? { ...cat, objects } : cat
+            cat.category.id === categoryId
+              ? { ...cat, objects: objects.map((obj) => ({ ...obj, selected: true })) }
+              : cat
+          ),
+        })),
+
+      toggleObjectSelection: (categoryId, objectId) =>
+        set((state) => ({
+          categories: state.categories.map((cat) =>
+            cat.category.id === categoryId
+              ? {
+                  ...cat,
+                  objects: cat.objects.map((obj) =>
+                    obj.id === objectId ? { ...obj, selected: !obj.selected } : obj
+                  ),
+                }
+              : cat
+          ),
+        })),
+
+      selectAllObjects: (categoryId) =>
+        set((state) => ({
+          categories: state.categories.map((cat) =>
+            cat.category.id === categoryId
+              ? { ...cat, objects: cat.objects.map((obj) => ({ ...obj, selected: true })) }
+              : cat
+          ),
+        })),
+
+      deselectAllObjects: (categoryId) =>
+        set((state) => ({
+          categories: state.categories.map((cat) =>
+            cat.category.id === categoryId
+              ? { ...cat, objects: cat.objects.map((obj) => ({ ...obj, selected: false })) }
+              : cat
           ),
         })),
 
@@ -196,7 +233,7 @@ export const useTotalObjectCount = () =>
   useNukeTuneStore((state) =>
     state.categories
       .filter((cat) => cat.selected)
-      .reduce((sum, cat) => sum + cat.objects.length, 0)
+      .reduce((sum, cat) => sum + cat.objects.filter((obj) => obj.selected).length, 0)
   );
 
 export const useDeletionStats = () =>
@@ -206,7 +243,7 @@ export const useDeletionStats = () =>
       return {
         totalDeleted: selected.reduce((sum, cat) => sum + cat.deletedCount, 0),
         totalFailed: selected.reduce((sum, cat) => sum + cat.failedCount, 0),
-        totalObjects: selected.reduce((sum, cat) => sum + cat.objects.length, 0),
+        totalObjects: selected.reduce((sum, cat) => sum + cat.objects.filter((obj) => obj.selected).length, 0),
       };
     })
   );

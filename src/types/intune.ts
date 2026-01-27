@@ -8,6 +8,7 @@ export interface IntuneObject {
   createdDateTime?: string;
   lastModifiedDateTime?: string;
   description?: string;
+  selected?: boolean;
   [key: string]: unknown;
 }
 
@@ -29,6 +30,7 @@ export interface IntuneCategory {
   icon: string;
   filter?: string;
   cannotDelete?: string[];
+  requiresAppPermissions?: boolean;
 }
 
 export interface CategoryState {

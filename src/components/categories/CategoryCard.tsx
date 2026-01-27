@@ -47,21 +47,25 @@ const dangerColors = {
 export function CategoryCard({ categoryState, onToggle }: CategoryCardProps) {
   const { category, selected, objects, loading, error } = categoryState;
   const colors = dangerColors[category.dangerLevel];
+  const isDisabled = category.requiresAppPermissions;
 
   return (
     <div
-      className={`group relative overflow-hidden rounded-xl border p-4 backdrop-blur-md transition-all duration-300 ${colors.border} ${colors.bg} ${colors.hoverBorder} hover:-translate-y-0.5 ${
-        selected
+      className={`group relative overflow-hidden rounded-xl border p-4 backdrop-blur-md transition-all duration-300 ${colors.border} ${colors.bg} ${
+        isDisabled ? "opacity-50 cursor-not-allowed" : `${colors.hoverBorder} hover:-translate-y-0.5`
+      } ${
+        selected && !isDisabled
           ? `ring-2 ring-white/20 shadow-lg ${colors.selectedGlow}`
           : `shadow-md ${colors.glow}`
       }`}
     >
-      <label className="flex cursor-pointer items-start gap-3">
+      <label className={`flex items-start gap-3 ${isDisabled ? "cursor-not-allowed" : "cursor-pointer"}`}>
         <input
           type="checkbox"
-          checked={selected}
+          checked={selected && !isDisabled}
           onChange={onToggle}
-          className={`mt-1 h-5 w-5 rounded transition-transform duration-200 hover:scale-110 ${colors.checkbox}`}
+          disabled={isDisabled}
+          className={`mt-1 h-5 w-5 rounded transition-transform duration-200 ${isDisabled ? "opacity-50" : "hover:scale-110"} ${colors.checkbox}`}
         />
         <div className="flex-1">
           <div className="flex items-center gap-2">
@@ -76,22 +80,28 @@ export function CategoryCard({ categoryState, onToggle }: CategoryCardProps) {
             {category.description}
           </p>
 
-          {loading && (
+          {isDisabled && (
+            <p className="mt-3 text-sm text-yellow-400/80">
+              Requires app-only permissions (not supported)
+            </p>
+          )}
+
+          {!isDisabled && loading && (
             <div className="mt-3 flex items-center gap-2">
               <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-500/30 border-t-blue-500" />
               <p className="text-sm text-blue-400">Loading...</p>
             </div>
           )}
 
-          {error && <p className="mt-3 text-sm text-red-400">{error}</p>}
+          {!isDisabled && error && <p className="mt-3 text-sm text-red-400">{error}</p>}
 
-          {!loading && !error && objects.length > 0 && (
+          {!isDisabled && !loading && !error && objects.length > 0 && (
             <p className="mt-3 text-sm font-medium text-gray-300">
               {objects.length} object{objects.length !== 1 ? "s" : ""} found
             </p>
           )}
 
-          {!loading && !error && selected && objects.length === 0 && (
+          {!isDisabled && !loading && !error && selected && objects.length === 0 && (
             <p className="mt-3 text-sm text-gray-500">No objects loaded yet</p>
           )}
         </div>

@@ -1,4 +1,5 @@
 import { useNukeTuneStore } from "~/store";
+import { useIntune } from "~/hooks/useIntune";
 import { CategoryCard } from "./CategoryCard";
 
 export function CategorySelector() {
@@ -6,8 +7,30 @@ export function CategorySelector() {
   const toggleCategory = useNukeTuneStore((state) => state.toggleCategory);
   const selectAll = useNukeTuneStore((state) => state.selectAllCategories);
   const deselectAll = useNukeTuneStore((state) => state.deselectAllCategories);
+  const { loadCategoryObjects } = useIntune();
 
   const selectedCount = categories.filter((c) => c.selected).length;
+
+  const handleToggle = (categoryId: string) => {
+    const cat = categories.find((c) => c.category.id === categoryId);
+    if (!cat || cat.category.requiresAppPermissions) return;
+
+    if (!cat.selected && cat.objects.length === 0 && !cat.loading) {
+      // Load data when selecting a category that hasn't been loaded
+      void loadCategoryObjects(cat.category);
+    }
+    toggleCategory(categoryId);
+  };
+
+  const handleSelectAll = () => {
+    selectAll();
+    // Load data for all categories that haven't been loaded (skip app-only permissions)
+    categories.forEach((cat) => {
+      if (!cat.category.requiresAppPermissions && cat.objects.length === 0 && !cat.loading) {
+        void loadCategoryObjects(cat.category);
+      }
+    });
+  };
 
   const criticalCategories = categories.filter(
     (c) => c.category.dangerLevel === "critical"
@@ -35,7 +58,7 @@ export function CategorySelector() {
         </div>
         <div className="flex gap-2">
           <button
-            onClick={selectAll}
+            onClick={handleSelectAll}
             className="glass-button px-4 py-2 text-sm"
           >
             Select All
@@ -60,7 +83,7 @@ export function CategorySelector() {
               <CategoryCard
                 key={cat.category.id}
                 categoryState={cat}
-                onToggle={() => toggleCategory(cat.category.id)}
+                onToggle={() => handleToggle(cat.category.id)}
               />
             ))}
           </div>
@@ -78,7 +101,7 @@ export function CategorySelector() {
               <CategoryCard
                 key={cat.category.id}
                 categoryState={cat}
-                onToggle={() => toggleCategory(cat.category.id)}
+                onToggle={() => handleToggle(cat.category.id)}
               />
             ))}
           </div>
@@ -96,7 +119,7 @@ export function CategorySelector() {
               <CategoryCard
                 key={cat.category.id}
                 categoryState={cat}
-                onToggle={() => toggleCategory(cat.category.id)}
+                onToggle={() => handleToggle(cat.category.id)}
               />
             ))}
           </div>
@@ -114,7 +137,7 @@ export function CategorySelector() {
               <CategoryCard
                 key={cat.category.id}
                 categoryState={cat}
-                onToggle={() => toggleCategory(cat.category.id)}
+                onToggle={() => handleToggle(cat.category.id)}
               />
             ))}
           </div>

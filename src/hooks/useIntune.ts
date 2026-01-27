@@ -52,12 +52,14 @@ export function useIntune() {
 
     // Get fresh state when called
     const getState = () => useNukeTuneStore.getState();
-    const selected = getState().categories.filter((cat) => cat.selected && cat.objects.length > 0);
+    const selected = getState().categories.filter((cat) => cat.selected && cat.objects.some((obj) => obj.selected));
 
     for (const catState of selected) {
       if (getState().shouldCancel) break;
 
-      await deleteCategoryObjects(catState.category, catState.objects, {
+      // Only delete selected objects within the category
+      const objectsToDelete = catState.objects.filter((obj) => obj.selected);
+      await deleteCategoryObjects(catState.category, objectsToDelete, {
         onProgress: (categoryId, completed, total) => {
           const progress = total > 0 ? (completed / total) * 100 : 0;
           const existing = getState().categories.find((c) => c.category.id === categoryId);
