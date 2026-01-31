@@ -575,8 +575,11 @@ export default function Home() {
           <footer className="border-t border-[var(--console-border)] py-8">
             <div className="container mx-auto px-4">
               <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
-                <div className="text-xs text-[var(--text-muted)]">
-                  NukeTune is not affiliated with Microsoft. Use at your own risk.
+                <div className="flex items-center gap-3 text-xs text-[var(--text-muted)]">
+                  <span className="rounded border border-[var(--console-border)] bg-[var(--console-dark)] px-2 py-0.5 font-mono text-[var(--text-dim)]">
+                    v1.0.0
+                  </span>
+                  <span>NukeTune is not affiliated with Microsoft. Use at your own risk.</span>
                 </div>
                 <div className="flex items-center gap-6 text-xs">
                   <Link

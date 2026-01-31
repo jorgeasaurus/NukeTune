@@ -4,6 +4,8 @@
 
 # NukeTune
 
+![Version](https://img.shields.io/badge/version-1.0.0-blue)
+
 Bulk deletion tool for Microsoft Intune environments. Reset your tenant by removing devices, apps, policies, and configurations in one operation.
 
 **Live**: [nuketune.com](https://nuketune.com)
@@ -51,7 +53,7 @@ Bulk deletion tool for Microsoft Intune environments. Reset your tenant by remov
 
 ## Usage
 
-1. Go to [nuketune.vercel.app](https://nuketune.vercel.app)
+1. Go to [nuketune.com](https://nuketune.com)
 2. Click **Sign in with Microsoft**
 3. Select your cloud environment
 4. Authenticate and grant consent (if prompted)
