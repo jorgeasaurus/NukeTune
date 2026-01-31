@@ -41,9 +41,6 @@ export default function Home() {
           name="description"
           content="Reset your Microsoft Intune environment to its original state"
         />
-        <link rel="icon" type="image/png" href="/logo.png" />
-        <link rel="apple-touch-icon" href="/logo.png" />
-        <link rel="shortcut icon" href="/logo.png" />
       </Head>
 
       <div className="relative min-h-screen bg-[var(--void-black)]">

@@ -18,9 +18,6 @@ export default function Dashboard() {
     <AuthGuard>
       <Head>
         <title>Dashboard - NukeTune</title>
-        <link rel="icon" type="image/png" href="/logo.png" />
-        <link rel="apple-touch-icon" href="/logo.png" />
-        <link rel="shortcut icon" href="/logo.png" />
       </Head>
 
       <div className="min-h-screen bg-[var(--void-black)]">
@@ -81,6 +78,7 @@ export default function Dashboard() {
             {/* Execute Button */}
             <div className="mt-8 flex justify-end">
               <button
+                type="button"
                 onClick={openPreview}
                 disabled={!hasSelection}
                 className="btn-danger group relative rounded-lg px-8 py-4 text-base"
