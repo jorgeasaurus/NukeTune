@@ -5,6 +5,12 @@
 # NukeTune
 
 ![Version](https://img.shields.io/badge/version-1.0.0-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
+![Next.js](https://img.shields.io/badge/Next.js-15-black)
+![React](https://img.shields.io/badge/React-19-61DAFB)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6)
+![Tailwind](https://img.shields.io/badge/Tailwind-4-06B6D4)
+![Microsoft Graph](https://img.shields.io/badge/Microsoft%20Graph-API-0078D4)
 
 Bulk deletion tool for Microsoft Intune environments. Reset your tenant by removing devices, apps, policies, and configurations in one operation.
 
