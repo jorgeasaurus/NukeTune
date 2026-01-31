@@ -56,16 +56,16 @@ export function CloudEnvironmentSelector({
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/80 backdrop-blur-sm"
         onClick={onCancel}
       />
 
       {/* Modal */}
-      <div className="glass-modal relative z-10 w-full max-w-lg mx-4 p-6">
+      <div className="console-modal relative z-10 mx-4 w-full max-w-lg p-6">
         <div className="mb-6">
-          <h2 className="flex items-center gap-2 text-xl font-semibold text-white">
+          <div className="flex items-center gap-2 mb-2">
             <svg
-              className="h-5 w-5 text-gray-400"
+              className="h-5 w-5 text-[var(--terminal-green)]"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -77,21 +77,26 @@ export function CloudEnvironmentSelector({
                 d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"
               />
             </svg>
+            <span className="text-xs font-medium uppercase tracking-wider text-[var(--text-dim)]">
+              Environment Selection
+            </span>
+          </div>
+          <h2 className="font-display text-xl font-semibold text-white">
             Select Cloud Environment
           </h2>
-          <p className="mt-1 text-sm text-gray-400">
+          <p className="mt-1 text-sm text-[var(--text-dim)]">
             Choose the Microsoft cloud environment for your tenant.
           </p>
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-2">
           {CLOUD_OPTIONS.map((env) => (
             <label
               key={env.value}
               className={`flex cursor-pointer items-start gap-4 rounded-lg border p-4 transition-all ${
                 selected === env.value
-                  ? "border-red-500/50 bg-red-500/10"
-                  : "border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/[0.08]"
+                  ? "border-[var(--terminal-green)]/50 bg-[var(--terminal-green)]/5"
+                  : "border-[var(--console-border)] bg-[var(--console-panel)] hover:border-[var(--console-border)] hover:bg-white/[0.03]"
               }`}
             >
               <input
@@ -100,27 +105,25 @@ export function CloudEnvironmentSelector({
                 value={env.value}
                 checked={selected === env.value}
                 onChange={() => setSelected(env.value)}
-                className="mt-1 h-4 w-4 accent-red-500"
+                className="checkbox-terminal mt-0.5"
               />
               <div className="flex-1">
-                <span className="font-medium text-white">{env.label}</span>
-                <p className="mt-0.5 text-sm text-gray-400">{env.description}</p>
+                <span className="font-display text-sm font-medium text-white">
+                  {env.label}
+                </span>
+                <p className="mt-0.5 text-xs text-[var(--text-dim)]">
+                  {env.description}
+                </p>
               </div>
             </label>
           ))}
         </div>
 
         <div className="mt-6 flex justify-end gap-3">
-          <button
-            onClick={onCancel}
-            className="glass-button px-4 py-2 text-sm"
-          >
+          <button onClick={onCancel} className="btn-terminal text-xs">
             Cancel
           </button>
-          <button
-            onClick={handleContinue}
-            className="btn-shine flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white backdrop-blur-sm transition-all hover:border-white/20 hover:bg-white/10"
-          >
+          <button onClick={handleContinue} className="btn-success flex items-center gap-2 text-xs">
             <svg
               className="h-4 w-4"
               viewBox="0 0 21 21"

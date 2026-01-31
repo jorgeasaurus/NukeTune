@@ -35,29 +35,25 @@ export function DeletionProgress() {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
-      <div className="glass-modal flex max-h-[90vh] w-full max-w-4xl flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
+      <div className="console-modal flex max-h-[90vh] w-full max-w-4xl flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-white/10 p-6">
+        <div className="flex items-center justify-between border-b border-[var(--console-border)] p-6">
           <div>
-            <h2 className="text-2xl font-bold text-gradient">
+            <div className="flex items-center gap-2 mb-1">
+              <span className={`status-dot ${isComplete ? "status-dot-active" : "status-dot-danger"}`} />
+              <span className="text-xs font-medium uppercase tracking-wider text-[var(--text-dim)]">
+                {isComplete ? "Operation Complete" : isPaused ? "Paused" : "Executing"}
+              </span>
+            </div>
+            <h2 className="font-display text-2xl font-bold text-white">
               {isComplete ? "Deletion Complete" : "Deleting Objects..."}
             </h2>
-            <p className="mt-1 text-sm text-gray-400">
-              {isComplete
-                ? `Processed ${stats.totalDeleted + stats.totalFailed} objects`
-                : isPaused
-                  ? "Deletion paused"
-                  : "Please wait while objects are being deleted"}
-            </p>
           </div>
           {isComplete && (
-            <button
-              onClick={handleClose}
-              className="rounded-lg p-2 text-gray-400 transition-all duration-200 hover:bg-white/5 hover:text-white"
-            >
+            <button onClick={handleClose} className="btn-terminal rounded-lg p-2">
               <svg
-                className="h-6 w-6"
+                className="h-5 w-5"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -77,17 +73,13 @@ export function DeletionProgress() {
         <div className="flex-1 overflow-auto p-6">
           {/* Overall Progress */}
           <div className="mb-6">
-            <div className="mb-2 flex justify-between text-sm">
-              <span className="text-gray-400">Overall Progress</span>
-              <span className="font-medium text-white">{Math.round(overallProgress)}%</span>
+            <div className="mb-2 flex justify-between text-xs uppercase tracking-wider">
+              <span className="text-[var(--text-dim)]">Overall Progress</span>
+              <span className="font-mono font-medium text-white">{Math.round(overallProgress)}%</span>
             </div>
-            <div className="h-3 overflow-hidden rounded-full bg-white/5 backdrop-blur-sm">
+            <div className="progress-bar h-3">
               <div
-                className={`h-full transition-all duration-500 ease-out ${
-                  isComplete
-                    ? "bg-gradient-to-r from-green-500 to-emerald-400"
-                    : "bg-gradient-to-r from-blue-500 to-cyan-400"
-                }`}
+                className={`progress-bar-fill ${isComplete ? "" : "progress-bar-fill-danger"}`}
                 style={{ width: `${overallProgress}%` }}
               />
             </div>
@@ -95,29 +87,31 @@ export function DeletionProgress() {
 
           {/* Stats Cards */}
           <div className="mb-6 grid grid-cols-3 gap-4">
-            <div className="glass glass-hover rounded-xl p-4 text-center">
-              <div className="text-3xl font-bold text-green-400">
+            <div className="console-panel rounded-xl p-4 text-center">
+              <div className="font-mono text-3xl font-bold text-[var(--terminal-green)]">
                 {stats.totalDeleted}
               </div>
-              <div className="text-sm text-gray-400">Deleted</div>
+              <div className="mt-1 text-xs uppercase tracking-wider text-[var(--text-dim)]">Deleted</div>
             </div>
-            <div className="glass glass-hover rounded-xl p-4 text-center">
-              <div className="text-3xl font-bold text-red-400">
+            <div className="console-panel rounded-xl p-4 text-center">
+              <div className="font-mono text-3xl font-bold text-[var(--danger-red)]">
                 {stats.totalFailed}
               </div>
-              <div className="text-sm text-gray-400">Failed</div>
+              <div className="mt-1 text-xs uppercase tracking-wider text-[var(--text-dim)]">Failed</div>
             </div>
-            <div className="glass glass-hover rounded-xl p-4 text-center">
-              <div className="text-3xl font-bold text-gray-300">
+            <div className="console-panel rounded-xl p-4 text-center">
+              <div className="font-mono text-3xl font-bold text-[var(--text-dim)]">
                 {stats.totalObjects - stats.totalDeleted - stats.totalFailed}
               </div>
-              <div className="text-sm text-gray-400">Remaining</div>
+              <div className="mt-1 text-xs uppercase tracking-wider text-[var(--text-dim)]">Remaining</div>
             </div>
           </div>
 
           {/* Category Progress */}
-          <div className="glass mb-6 space-y-3 rounded-xl p-4">
-            <h3 className="text-sm font-medium text-gray-300">Category Progress</h3>
+          <div className="console-panel mb-6 space-y-3 rounded-xl p-4">
+            <h3 className="text-xs font-medium uppercase tracking-wider text-[var(--text-dim)]">
+              Category Progress
+            </h3>
             {selectedCategories.map((cat) => {
               const progress =
                 cat.objects.length > 0
@@ -126,14 +120,14 @@ export function DeletionProgress() {
               return (
                 <div key={cat.category.id}>
                   <div className="mb-1 flex justify-between text-xs">
-                    <span className="text-gray-400">{cat.category.name}</span>
-                    <span className="text-gray-500">
+                    <span className="text-[var(--text-dim)]">{cat.category.name}</span>
+                    <span className="font-mono text-[var(--text-muted)]">
                       {cat.deletedCount + cat.failedCount}/{cat.objects.length}
                     </span>
                   </div>
-                  <div className="h-1.5 overflow-hidden rounded-full bg-white/5">
+                  <div className="progress-bar h-1.5">
                     <div
-                      className="h-full bg-gradient-to-r from-blue-500 to-cyan-400 transition-all duration-300"
+                      className="progress-bar-fill"
                       style={{ width: `${progress}%` }}
                     />
                   </div>
@@ -146,47 +140,32 @@ export function DeletionProgress() {
         </div>
 
         {/* Footer */}
-        <div className="border-t border-white/10 p-6">
+        <div className="border-t border-[var(--console-border)] p-6">
           <div className="flex justify-between">
             <div className="flex gap-3">
               {isDeleting && !isComplete && (
                 <>
                   {isPaused ? (
-                    <button
-                      onClick={resumeDeletion}
-                      className="rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 px-5 py-2.5 font-medium text-white shadow-lg shadow-blue-500/20 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-blue-500/30"
-                    >
+                    <button onClick={resumeDeletion} className="btn-success">
                       Resume
                     </button>
                   ) : (
-                    <button
-                      onClick={pauseDeletion}
-                      className="rounded-xl border border-yellow-500/30 bg-yellow-500/10 px-5 py-2.5 font-medium text-yellow-400 backdrop-blur-sm transition-all duration-300 hover:border-yellow-500/50 hover:bg-yellow-500/20"
-                    >
+                    <button onClick={pauseDeletion} className="btn-warning">
                       Pause
                     </button>
                   )}
-                  <button
-                    onClick={cancelDeletion}
-                    className="rounded-xl border border-red-500/30 bg-red-500/10 px-5 py-2.5 font-medium text-red-400 backdrop-blur-sm transition-all duration-300 hover:border-red-500/50 hover:bg-red-500/20"
-                  >
+                  <button onClick={cancelDeletion} className="btn-terminal">
                     Cancel
                   </button>
                 </>
               )}
             </div>
             <div className="flex gap-3">
-              <button
-                onClick={exportLog}
-                className="glass-button"
-              >
+              <button onClick={exportLog} className="btn-terminal">
                 Export Log (CSV)
               </button>
               {isComplete && (
-                <button
-                  onClick={handleClose}
-                  className="rounded-xl bg-gradient-to-r from-gray-600 to-gray-700 px-6 py-2.5 font-medium text-white shadow-lg transition-all duration-300 hover:-translate-y-0.5 hover:from-gray-500 hover:to-gray-600"
-                >
+                <button onClick={handleClose} className="btn-success">
                   Done
                 </button>
               )}

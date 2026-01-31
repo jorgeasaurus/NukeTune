@@ -2,7 +2,7 @@ import { type AppType } from "next/app";
 import { useRouter } from "next/router";
 import { useEffect, useState, useRef } from "react";
 import { MsalProvider } from "@azure/msal-react";
-import { Geist } from "next/font/google";
+import { JetBrains_Mono, Space_Grotesk } from "next/font/google";
 import {
   msalInstance,
   initializeMsal,
@@ -11,8 +11,14 @@ import {
 
 import "~/styles/globals.css";
 
-const geist = Geist({
+const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
+  variable: "--font-mono",
+});
+
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  variable: "--font-display",
 });
 
 const MyApp: AppType = ({ Component, pageProps }) => {
@@ -21,7 +27,6 @@ const MyApp: AppType = ({ Component, pageProps }) => {
   const initStarted = useRef(false);
 
   useEffect(() => {
-    // Only initialize once
     if (initStarted.current) return;
     initStarted.current = true;
 
@@ -37,17 +42,19 @@ const MyApp: AppType = ({ Component, pageProps }) => {
 
   if (!isInitialized) {
     return (
-      <div className={geist.className}>
-        <div className="flex min-h-screen items-center justify-center bg-gray-950 bg-mesh">
-          <div className="glass rounded-2xl p-8 text-center">
+      <div className={`${jetbrainsMono.variable} ${spaceGrotesk.variable} font-mono`}>
+        <div className="flex min-h-screen items-center justify-center bg-[var(--void-black)]">
+          <div className="console-panel rounded-xl p-8 text-center">
             <div className="relative mx-auto mb-4 h-10 w-10">
-              <div className="absolute inset-0 animate-spin rounded-full border-4 border-transparent border-t-red-500" />
+              <div className="absolute inset-0 animate-spin rounded-full border-2 border-[var(--console-border)] border-t-[var(--danger-red)]" />
               <div
-                className="absolute inset-2 animate-spin rounded-full border-4 border-transparent border-t-orange-400"
+                className="absolute inset-2 animate-spin rounded-full border-2 border-[var(--console-border)] border-t-[var(--nuke-orange)]"
                 style={{ animationDirection: "reverse", animationDuration: "1.5s" }}
               />
             </div>
-            <p className="text-gradient font-medium">Loading NukeTune...</p>
+            <p className="text-sm text-[var(--text-dim)]">
+              <span className="text-[var(--terminal-green)]">$</span> Initializing NukeTune...
+            </p>
           </div>
         </div>
       </div>
@@ -56,7 +63,7 @@ const MyApp: AppType = ({ Component, pageProps }) => {
 
   return (
     <MsalProvider instance={msalInstance}>
-      <div className={geist.className}>
+      <div className={`${jetbrainsMono.variable} ${spaceGrotesk.variable} font-mono`}>
         <Component {...pageProps} />
       </div>
     </MsalProvider>

@@ -16,7 +16,6 @@ export function CategorySelector() {
     if (!cat || cat.category.requiresAppPermissions) return;
 
     if (!cat.selected && cat.objects.length === 0 && !cat.loading) {
-      // Load data when selecting a category that hasn't been loaded
       void loadCategoryObjects(cat.category);
     }
     toggleCategory(categoryId);
@@ -24,7 +23,6 @@ export function CategorySelector() {
 
   const handleSelectAll = () => {
     selectAll();
-    // Load data for all categories that haven't been loaded (skip app-only permissions)
     categories.forEach((cat) => {
       if (!cat.category.requiresAppPermissions && cat.objects.length === 0 && !cat.loading) {
         void loadCategoryObjects(cat.category);
@@ -47,38 +45,40 @@ export function CategorySelector() {
 
   return (
     <div className="space-y-8">
+      {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-xl font-bold text-gradient">
+          <span className="text-xs font-medium uppercase tracking-wider text-[var(--danger-red)]">
+            {"//"} TARGET SELECTION
+          </span>
+          <h2 className="font-display mt-1 text-xl font-bold text-white">
             Select Categories to Delete
           </h2>
-          <p className="mt-1 text-sm text-gray-400">
+          <p className="mt-1 text-sm text-[var(--text-dim)]">
             {selectedCount} of {categories.length} categories selected
           </p>
         </div>
         <div className="flex gap-2">
-          <button
-            onClick={handleSelectAll}
-            className="glass-button px-4 py-2 text-sm"
-          >
+          <button onClick={handleSelectAll} className="btn-terminal text-xs">
             Select All
           </button>
-          <button
-            onClick={deselectAll}
-            className="glass-button px-4 py-2 text-sm"
-          >
+          <button onClick={deselectAll} className="btn-terminal text-xs">
             Deselect All
           </button>
         </div>
       </div>
 
+      {/* Critical Level */}
       {criticalCategories.length > 0 && (
         <div>
-          <h3 className="mb-4 flex items-center gap-2.5 text-lg font-semibold text-red-400">
-            <span className="h-3 w-3 rounded-full bg-red-500 shadow-lg shadow-red-500/50" />
-            Critical
-          </h3>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mb-4 flex items-center gap-3">
+            <span className="h-2 w-2 rounded-full bg-[var(--critical-red)] shadow-[0_0_8px_var(--critical-red-glow)]" />
+            <h3 className="font-display text-sm font-semibold uppercase tracking-wider text-[var(--critical-red)]">
+              Critical
+            </h3>
+            <div className="h-px flex-1 bg-[var(--critical-red)]/20" />
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {criticalCategories.map((cat) => (
               <CategoryCard
                 key={cat.category.id}
@@ -90,13 +90,17 @@ export function CategorySelector() {
         </div>
       )}
 
+      {/* High Level */}
       {highCategories.length > 0 && (
         <div>
-          <h3 className="mb-4 flex items-center gap-2.5 text-lg font-semibold text-orange-400">
-            <span className="h-3 w-3 rounded-full bg-orange-500 shadow-lg shadow-orange-500/50" />
-            High
-          </h3>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mb-4 flex items-center gap-3">
+            <span className="h-2 w-2 rounded-full bg-[var(--high-orange)] shadow-[0_0_8px_var(--high-orange-glow)]" />
+            <h3 className="font-display text-sm font-semibold uppercase tracking-wider text-[var(--high-orange)]">
+              High
+            </h3>
+            <div className="h-px flex-1 bg-[var(--high-orange)]/20" />
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {highCategories.map((cat) => (
               <CategoryCard
                 key={cat.category.id}
@@ -108,13 +112,17 @@ export function CategorySelector() {
         </div>
       )}
 
+      {/* Medium Level */}
       {mediumCategories.length > 0 && (
         <div>
-          <h3 className="mb-4 flex items-center gap-2.5 text-lg font-semibold text-yellow-400">
-            <span className="h-3 w-3 rounded-full bg-yellow-500 shadow-lg shadow-yellow-500/50" />
-            Medium
-          </h3>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mb-4 flex items-center gap-3">
+            <span className="h-2 w-2 rounded-full bg-[var(--medium-amber)] shadow-[0_0_8px_var(--medium-amber-glow)]" />
+            <h3 className="font-display text-sm font-semibold uppercase tracking-wider text-[var(--medium-amber)]">
+              Medium
+            </h3>
+            <div className="h-px flex-1 bg-[var(--medium-amber)]/20" />
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {mediumCategories.map((cat) => (
               <CategoryCard
                 key={cat.category.id}
@@ -126,13 +134,17 @@ export function CategorySelector() {
         </div>
       )}
 
+      {/* Low Level */}
       {lowCategories.length > 0 && (
         <div>
-          <h3 className="mb-4 flex items-center gap-2.5 text-lg font-semibold text-green-400">
-            <span className="h-3 w-3 rounded-full bg-green-500 shadow-lg shadow-green-500/50" />
-            Low
-          </h3>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mb-4 flex items-center gap-3">
+            <span className="h-2 w-2 rounded-full bg-[var(--low-green)] shadow-[0_0_8px_var(--low-green-glow)]" />
+            <h3 className="font-display text-sm font-semibold uppercase tracking-wider text-[var(--low-green)]">
+              Low
+            </h3>
+            <div className="h-px flex-1 bg-[var(--low-green)]/20" />
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {lowCategories.map((cat) => (
               <CategoryCard
                 key={cat.category.id}

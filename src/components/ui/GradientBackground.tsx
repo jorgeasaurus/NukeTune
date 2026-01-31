@@ -1,34 +1,17 @@
 export function GradientBackground() {
   return (
-    <div className="gradient-bg" aria-hidden="true">
-      {/* Radioactive core pulse */}
-      <div className="radioactive-core" />
+    <div className="terminal-bg" aria-hidden="true">
+      {/* Nuclear reactor core pulse */}
+      <div className="reactor-core" />
 
-      {/* Radiation waves expanding outward */}
-      <div className="radiation-wave" />
-      <div className="radiation-wave" />
-      <div className="radiation-wave" />
-      <div className="radiation-wave" />
+      {/* Grid overlay - facility aesthetic */}
+      <div className="grid-overlay" />
 
-      {/* Floating radioactive particles */}
-      <div className="particle" />
-      <div className="particle" />
-      <div className="particle" />
-      <div className="particle" />
-      <div className="particle" />
-      <div className="particle" />
-      <div className="particle" />
-      <div className="particle" />
+      {/* CRT scanlines */}
+      <div className="scanlines-overlay" />
 
-      {/* Gradient orbs */}
-      <div className="gradient-orb gradient-orb-1" />
-      <div className="gradient-orb gradient-orb-2" />
-      <div className="gradient-orb gradient-orb-3" />
-
-      {/* Overlays */}
-      <div className="gradient-mesh" />
-      <div className="noise-overlay" />
-      <div className="scanlines" />
+      {/* Noise texture for depth */}
+      <div className="noise-texture" />
     </div>
   );
 }

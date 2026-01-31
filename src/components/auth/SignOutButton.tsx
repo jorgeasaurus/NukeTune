@@ -17,12 +17,9 @@ export function SignOutButton({ className }: SignOutButtonProps) {
   return (
     <button
       onClick={handleSignOut}
-      className={
-        className ??
-        "glass-button px-4 py-2 text-sm"
-      }
+      className={className ?? "btn-terminal text-xs"}
     >
-      Sign out
+      Sign Out
     </button>
   );
 }

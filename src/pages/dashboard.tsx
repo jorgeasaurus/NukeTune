@@ -5,6 +5,7 @@ import { CategorySelector } from "~/components/categories";
 import { PreviewModal } from "~/components/preview";
 import { DeletionProgress } from "~/components/deletion";
 import { useNukeTuneStore, useSelectedCategories } from "~/store";
+import { GradientBackground } from "~/components/ui/GradientBackground";
 
 export default function Dashboard() {
   const openPreview = useNukeTuneStore((state) => state.openPreview);
@@ -20,68 +21,102 @@ export default function Dashboard() {
         <link rel="icon" type="image/png" href="/logo.png" />
       </Head>
 
-      <div className="min-h-screen bg-gray-950 bg-mesh">
-        <Header />
+      <div className="min-h-screen bg-[var(--void-black)]">
+        <GradientBackground />
+        <div className="relative z-10">
+          <Header />
 
-        <main className="mx-auto max-w-7xl px-4 py-8">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold tracking-tight text-gradient">
-              Intune Environment Reset
-            </h1>
-            <p className="mt-2 text-gray-400">
-              Select the categories you want to delete, then preview and confirm
-              the deletion.
-            </p>
-          </div>
-
-          <div className="glass glass-danger glass-hover mb-8 p-6">
-            <div className="flex items-start gap-4">
-              <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-500/20 backdrop-blur-sm">
-                <svg
-                  className="h-6 w-6 text-red-400"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                  />
-                </svg>
+          <main className="mx-auto max-w-7xl px-4 py-8">
+            {/* Page Header */}
+            <div className="mb-8">
+              <div className="inline-flex items-center gap-2 rounded-md border border-[var(--console-border)] bg-[var(--console-panel)] px-3 py-1.5 mb-4">
+                <span className="status-dot status-dot-danger" />
+                <span className="text-xs font-medium uppercase tracking-wider text-[var(--text-dim)]">
+                  Control Panel Active
+                </span>
               </div>
-              <div>
-                <h2 className="font-semibold text-red-300">
-                  Destructive Operation Warning
-                </h2>
-                <p className="mt-1 text-sm leading-relaxed text-red-200/70">
-                  Objects deleted from Intune cannot be recovered. This includes
-                  device enrollments, app assignments, and policy configurations.
-                  Make sure you have backups of any important configurations
-                  before proceeding.
-                </p>
+              <h1 className="font-display text-3xl font-bold tracking-tight text-white">
+                Intune Environment Reset
+              </h1>
+              <p className="mt-2 text-sm text-[var(--text-dim)]">
+                Select target categories, preview affected objects, execute deletion protocol
+              </p>
+            </div>
+
+            {/* Warning Banner */}
+            <div className="banner-danger mb-8 p-5">
+              <div className="flex items-start gap-4">
+                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-[var(--critical-red)]/20">
+                  <svg
+                    className="h-5 w-5 text-[var(--critical-red)]"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <h2 className="font-display text-sm font-semibold uppercase tracking-wider text-[var(--critical-red)]">
+                    Destructive Operation Warning
+                  </h2>
+                  <p className="mt-1 text-sm leading-relaxed text-[var(--critical-red)]/70">
+                    Objects deleted from Intune cannot be recovered. This includes
+                    device enrollments, app assignments, and policy configurations.
+                    Ensure you have backups before proceeding.
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
 
-          <CategorySelector />
+            <CategorySelector />
 
-          <div className="mt-8 flex justify-end">
-            <button
-              onClick={openPreview}
-              disabled={!hasSelection}
-              className="group relative overflow-hidden rounded-xl bg-gradient-to-r from-red-500 to-red-600 px-8 py-3.5 text-lg font-semibold text-white shadow-lg shadow-red-500/20 transition-all duration-300 hover:-translate-y-0.5 hover:from-red-400 hover:to-red-500 hover:shadow-xl hover:shadow-red-500/30 active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-lg"
-            >
-              Preview Deletion ({selectedCategories.length} categories)
-            </button>
-          </div>
-        </main>
+            {/* Execute Button */}
+            <div className="mt-8 flex justify-end">
+              <button
+                onClick={openPreview}
+                disabled={!hasSelection}
+                className="btn-danger group relative rounded-lg px-8 py-4 text-base"
+              >
+                <span className="flex items-center gap-2">
+                  <svg
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                    />
+                  </svg>
+                  Preview Deletion
+                  <span className="rounded bg-white/20 px-2 py-0.5 text-xs font-bold">
+                    {selectedCategories.length}
+                  </span>
+                </span>
+              </button>
+            </div>
+          </main>
 
-        <PreviewModal />
-        {(deletionPhase === "deleting" ||
-          deletionPhase === "confirming" ||
-          deletionPhase === "complete") && <DeletionProgress />}
+          <PreviewModal />
+          {(deletionPhase === "deleting" ||
+            deletionPhase === "confirming" ||
+            deletionPhase === "complete") && <DeletionProgress />}
+        </div>
       </div>
     </AuthGuard>
   );
