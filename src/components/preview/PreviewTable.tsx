@@ -180,6 +180,7 @@ export function PreviewTable({ categories }: PreviewTableProps) {
           value={selectedCategoryFilter}
           onChange={(e) => setSelectedCategoryFilter(e.target.value)}
           className="input-terminal sm:w-auto"
+          aria-label="Filter by category"
         >
           <option value="all">All Categories</option>
           {categories.map((cat) => (
@@ -200,12 +201,14 @@ export function PreviewTable({ categories }: PreviewTableProps) {
         </div>
         <div className="flex gap-2">
           <button
+            type="button"
             onClick={handleSelectAllVisible}
             className="btn-terminal text-xs"
           >
             Select All
           </button>
           <button
+            type="button"
             onClick={handleDeselectAllVisible}
             className="btn-terminal text-xs"
           >
@@ -219,6 +222,7 @@ export function PreviewTable({ categories }: PreviewTableProps) {
           <thead className="sticky top-0 border-b border-[var(--console-border)] bg-[var(--console-dark)]/95 text-[var(--text-dim)] backdrop-blur-md">
             <tr>
               <th className="w-10 px-4 py-3">
+                <span className="sr-only">Select</span>
                 <input
                   type="checkbox"
                   checked={filteredSelectedCount === filteredObjects.length && filteredObjects.length > 0}
@@ -230,6 +234,7 @@ export function PreviewTable({ categories }: PreviewTableProps) {
                     }
                   }}
                   className="checkbox-terminal checkbox-danger"
+                  aria-label="Select all visible objects"
                 />
               </th>
               <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider">Name</th>
@@ -263,6 +268,7 @@ export function PreviewTable({ categories }: PreviewTableProps) {
                         checked={obj.selected ?? false}
                         onChange={() => toggleObjectSelection(obj.categoryId, obj.id)}
                         className="checkbox-terminal checkbox-danger"
+                        aria-label={`Select ${displayName}`}
                       />
                     </td>
                     <td className="px-4 py-3">

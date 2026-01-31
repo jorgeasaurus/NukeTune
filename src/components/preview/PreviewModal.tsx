@@ -70,8 +70,10 @@ export function PreviewModal() {
             </h2>
           </div>
           <button
+            type="button"
             onClick={handleClose}
             className="btn-terminal rounded-lg p-2"
+            aria-label="Close"
           >
             <svg
               className="h-5 w-5"
@@ -134,10 +136,11 @@ export function PreviewModal() {
               />
             </div>
             <div className="flex gap-3">
-              <button onClick={handleClose} className="btn-terminal">
+              <button type="button" onClick={handleClose} className="btn-terminal">
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={handleStartDeletion}
                 disabled={!isConfirmed || anyLoading || totalCount === 0}
                 className="btn-danger"

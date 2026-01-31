@@ -51,7 +51,12 @@ export function DeletionProgress() {
             </h2>
           </div>
           {isComplete && (
-            <button onClick={handleClose} className="btn-terminal rounded-lg p-2">
+            <button
+              type="button"
+              onClick={handleClose}
+              className="btn-terminal rounded-lg p-2"
+              aria-label="Close"
+            >
               <svg
                 className="h-5 w-5"
                 fill="none"
@@ -146,26 +151,26 @@ export function DeletionProgress() {
               {isDeleting && !isComplete && (
                 <>
                   {isPaused ? (
-                    <button onClick={resumeDeletion} className="btn-success">
+                    <button type="button" onClick={resumeDeletion} className="btn-success">
                       Resume
                     </button>
                   ) : (
-                    <button onClick={pauseDeletion} className="btn-warning">
+                    <button type="button" onClick={pauseDeletion} className="btn-warning">
                       Pause
                     </button>
                   )}
-                  <button onClick={cancelDeletion} className="btn-terminal">
+                  <button type="button" onClick={cancelDeletion} className="btn-terminal">
                     Cancel
                   </button>
                 </>
               )}
             </div>
             <div className="flex gap-3">
-              <button onClick={exportLog} className="btn-terminal">
+              <button type="button" onClick={exportLog} className="btn-terminal">
                 Export Log (CSV)
               </button>
               {isComplete && (
-                <button onClick={handleClose} className="btn-success">
+                <button type="button" onClick={handleClose} className="btn-success">
                   Done
                 </button>
               )}
