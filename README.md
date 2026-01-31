@@ -6,7 +6,25 @@
 
 Bulk deletion tool for Microsoft Intune environments. Reset your tenant by removing devices, apps, policies, and configurations in one operation.
 
-**Live**: [nuketune.vercel.app](https://nuketune.vercel.app)
+**Live**: [nuketune.com](https://nuketune.com)
+
+## Screenshots
+
+<p align="center">
+  <img src="fullhomepage.jpeg" alt="Homepage" width="100%" />
+</p>
+
+<p align="center">
+  <img src="cloudenv.jpeg" alt="Cloud Environment Selection" width="80%" />
+</p>
+
+<p align="center">
+  <img src="fullpagecontrolpanel.jpeg" alt="Control Panel" width="100%" />
+</p>
+
+<p align="center">
+  <img src="DeletionExample.png" alt="Deletion Progress" width="80%" />
+</p>
 
 ## Features
 

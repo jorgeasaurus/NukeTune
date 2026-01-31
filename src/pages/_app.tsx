@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import { useEffect, useState, useRef } from "react";
 import { MsalProvider } from "@azure/msal-react";
 import { JetBrains_Mono, Space_Grotesk } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import {
   msalInstance,
   initializeMsal,
@@ -65,6 +66,7 @@ const MyApp: AppType = ({ Component, pageProps }) => {
     <MsalProvider instance={msalInstance}>
       <div className={`${jetbrainsMono.variable} ${spaceGrotesk.variable} font-mono`}>
         <Component {...pageProps} />
+        <Analytics />
       </div>
     </MsalProvider>
   );
