@@ -59,6 +59,9 @@ export function Navigation() {
             <Link href="/#how-it-works" className={navLinkClass}>
               Process
             </Link>
+            <Link href="/#faq" className={navLinkClass}>
+              FAQ
+            </Link>
             <Link href="/setup" className={navLinkClass}>
               Setup
             </Link>

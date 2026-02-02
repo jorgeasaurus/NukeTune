@@ -529,6 +529,89 @@ export default function Home() {
             </div>
           </section>
 
+          {/* FAQ Section */}
+          <section
+            id="faq"
+            className="container mx-auto scroll-mt-16 px-4 py-16"
+          >
+            <div className="mx-auto max-w-4xl">
+              <div className="mb-12">
+                <span className="text-xs font-medium uppercase tracking-wider text-[var(--danger-red)]">
+                  {"//"} INTEL
+                </span>
+                <h2 className="font-display mt-2 text-3xl font-bold text-white sm:text-4xl">
+                  Frequently Asked Questions
+                </h2>
+              </div>
+
+              <div className="space-y-3">
+                {[
+                  {
+                    q: "What is the disclaimer?",
+                    a: "NukeTune is provided on an \"as is\" and \"as available\" basis, without warranties of any kind, either express or implied. This includes, but is not limited to, implied warranties of merchantability, fitness for a particular purpose, accuracy, reliability, or non-infringement. By using NukeTune, you acknowledge that the software performs potentially destructive actions, including the modification and deletion of Microsoft Intune tenant data, configurations, and resources. You assume full responsibility for any actions taken using this tool and for verifying the scope and impact of those actions before execution. The authors and maintainers of NukeTune are not responsible for any loss of data, service disruption, security impact, financial loss, or other damages arising from the use or inability to use this software, even if advised of the possibility of such damages. You are solely responsible for ensuring that you have proper authorization, backups, testing environments, and change controls in place before using NukeTune in any tenant or environment.",
+                  },
+                  {
+                    q: "Is this tool free to use?",
+                    a: "Yes, NukeTune is completely free and open-source. There are no licensing fees or subscriptions. You only need valid Microsoft Graph API permissions to your Intune tenant.",
+                  },
+                  {
+                    q: "Is this safe to use in production?",
+                    a: "NukeTune performs irreversible deletions. It's designed for test/dev environments or complete tenant resets. Always use Preview mode first to review exactly what will be deleted. We strongly recommend testing in a non-production tenant.",
+                  },
+                  {
+                    q: "What permissions do I need?",
+                    a: "You need to be a Global Administrator or Intune Administrator with the ability to consent to Microsoft Graph API permissions. The required scopes include DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, and Group.ReadWrite.All.",
+                  },
+                  {
+                    q: "Can I undo deletions?",
+                    a: "No. Deletions are permanent and cannot be reversed. This is why Preview mode exists - always review before executing. Some objects like devices may be recoverable within a limited time window via Microsoft's own recovery mechanisms, but NukeTune does not provide rollback functionality.",
+                  },
+                  {
+                    q: "Does this work with government cloud environments?",
+                    a: "Yes. NukeTune supports multiple cloud environments including Global (Commercial), US Government (GCC High), and US Government DoD. Select your environment during sign-in.",
+                  },
+                  {
+                    q: "What happens if a deletion fails?",
+                    a: "Failed deletions are logged with detailed error messages. The tool continues processing remaining items. You can review the execution log to see successes, failures, and skipped items with timestamps.",
+                  },
+                  {
+                    q: "Can I delete specific items instead of entire categories?",
+                    a: "Yes. After selecting categories and entering Preview mode, you can review all items and select exactly which ones to delete. This gives you granular control over the deletion process.",
+                  },
+                  {
+                    q: "Is my data sent to external servers?",
+                    a: "No. NukeTune runs entirely in your browser and communicates directly with Microsoft Graph API. Your credentials and data never touch our servers. Authentication is handled by Microsoft's official MSAL library.",
+                  },
+                ].map((item, index) => (
+                  <details
+                    key={index}
+                    className="group rounded-lg border border-[var(--console-border)] bg-[var(--console-panel)] transition-colors hover:border-[var(--danger-red)]/40"
+                  >
+                    <summary className="flex cursor-pointer items-center justify-between px-6 py-4 font-semibold text-white [&::-webkit-details-marker]:hidden">
+                      <span>{item.q}</span>
+                      <svg
+                        className="h-5 w-5 shrink-0 text-[var(--text-dim)] transition-transform group-open:rotate-180"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 9l-7 7-7-7"
+                        />
+                      </svg>
+                    </summary>
+                    <div className="border-t border-[var(--console-border)] px-6 py-4 text-sm leading-relaxed text-[var(--text-dim)]">
+                      {item.a}
+                    </div>
+                  </details>
+                ))}
+              </div>
+            </div>
+          </section>
+
           {/* CTA Section */}
           <section className="container mx-auto px-4 py-16">
             <div className="mx-auto max-w-4xl">
