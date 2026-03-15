@@ -51,7 +51,7 @@ Bulk deletion tool for Microsoft Intune environments. Reset your tenant by remov
 | Autopilot Profiles | Compliance Policies | Device Categories |
 | Applications | PowerShell Scripts | Terms and Conditions |
 | Conditional Access | Shell Scripts (macOS) | Notification Templates |
-| | Remediation Scripts | |
+| Entra ID Groups | Remediation Scripts | |
 | | App Protection Policies | |
 | | Administrative Templates | |
 | | Security Baselines | |
@@ -81,6 +81,7 @@ Bulk deletion tool for Microsoft Intune environments. Reset your tenant by remov
 | DeviceManagementConfiguration.ReadWrite.All | Policies, scripts |
 | DeviceManagementApps.ReadWrite.All | Applications |
 | DeviceManagementRBAC.ReadWrite.All | Roles |
+| Group.ReadWrite.All | Entra ID Groups |
 | Policy.ReadWrite.ConditionalAccess | Conditional Access |
 | Policy.Read.All | Policy reading |
 

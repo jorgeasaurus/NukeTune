@@ -158,6 +158,7 @@ export default function Setup() {
                       "DeviceManagementApps.ReadWrite.All",
                       "Policy.ReadWrite.ConditionalAccess",
                       "DeviceManagementRBAC.ReadWrite.All",
+                      "Group.ReadWrite.All",
                     ].map((permission) => (
                       <div
                         key={permission}

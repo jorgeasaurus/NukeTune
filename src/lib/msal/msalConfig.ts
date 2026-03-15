@@ -40,6 +40,7 @@ export const loginRequest = {
     "Policy.ReadWrite.ConditionalAccess",
     "Policy.Read.All",
     "DeviceManagementRBAC.ReadWrite.All",
+    "Group.ReadWrite.All",
   ],
 };
 

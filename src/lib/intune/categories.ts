@@ -132,6 +132,16 @@ export const INTUNE_CATEGORIES: IntuneCategory[] = [
     icon: "lock",
   },
   {
+    id: "entra-groups",
+    name: "Entra ID Groups",
+    description: "Azure AD / Entra ID security and Microsoft 365 groups",
+    dangerLevel: "critical",
+    listEndpoint: "/groups",
+    deleteEndpoint: "/groups",
+    useBeta: false,
+    icon: "group",
+  },
+  {
     id: "powershell-scripts",
     name: "PowerShell Scripts",
     description: "Device management scripts (PowerShell)",
