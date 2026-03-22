@@ -42,6 +42,7 @@ export interface CategoryState {
   deletionProgress: number;
   deletedCount: number;
   failedCount: number;
+  skippedCount: number;
 }
 
 export interface DeletionLogEntry {

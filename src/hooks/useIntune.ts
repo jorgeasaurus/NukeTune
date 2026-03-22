@@ -67,7 +67,8 @@ export function useIntune() {
             categoryId,
             progress,
             existing?.deletedCount ?? 0,
-            existing?.failedCount ?? 0
+            existing?.failedCount ?? 0,
+            existing?.skippedCount ?? 0
           );
         },
         onItemComplete: (entry) => {
@@ -78,11 +79,13 @@ export function useIntune() {
           if (currentCatState) {
             const newDeleted = entry.status === "success" ? currentCatState.deletedCount + 1 : currentCatState.deletedCount;
             const newFailed = entry.status === "error" ? currentCatState.failedCount + 1 : currentCatState.failedCount;
+            const newSkipped = entry.status === "skipped" ? currentCatState.skippedCount + 1 : currentCatState.skippedCount;
             updateCategoryProgress(
               entry.categoryId,
               currentCatState.deletionProgress,
               newDeleted,
-              newFailed
+              newFailed,
+              newSkipped
             );
           }
         },

@@ -19,7 +19,7 @@ export function DeletionProgress() {
 
   const overallProgress =
     stats.totalObjects > 0
-      ? ((stats.totalDeleted + stats.totalFailed) / stats.totalObjects) * 100
+      ? ((stats.totalDeleted + stats.totalFailed + stats.totalSkipped) / stats.totalObjects) * 100
       : 0;
 
   const handleClose = () => {
@@ -91,7 +91,7 @@ export function DeletionProgress() {
           </div>
 
           {/* Stats Cards */}
-          <div className="mb-6 grid grid-cols-3 gap-4">
+          <div className="mb-6 grid grid-cols-4 gap-4">
             <div className="console-panel rounded-xl p-4 text-center">
               <div className="font-mono text-3xl font-bold text-[var(--terminal-green)]">
                 {stats.totalDeleted}
@@ -105,8 +105,14 @@ export function DeletionProgress() {
               <div className="mt-1 text-xs uppercase tracking-wider text-[var(--text-dim)]">Failed</div>
             </div>
             <div className="console-panel rounded-xl p-4 text-center">
+              <div className="font-mono text-3xl font-bold text-amber-400">
+                {stats.totalSkipped}
+              </div>
+              <div className="mt-1 text-xs uppercase tracking-wider text-[var(--text-dim)]">Skipped</div>
+            </div>
+            <div className="console-panel rounded-xl p-4 text-center">
               <div className="font-mono text-3xl font-bold text-[var(--text-dim)]">
-                {stats.totalObjects - stats.totalDeleted - stats.totalFailed}
+                {stats.totalObjects - stats.totalDeleted - stats.totalFailed - stats.totalSkipped}
               </div>
               <div className="mt-1 text-xs uppercase tracking-wider text-[var(--text-dim)]">Remaining</div>
             </div>
@@ -120,14 +126,14 @@ export function DeletionProgress() {
             {selectedCategories.map((cat) => {
               const progress =
                 cat.objects.length > 0
-                  ? ((cat.deletedCount + cat.failedCount) / cat.objects.length) * 100
+                  ? ((cat.deletedCount + cat.failedCount + cat.skippedCount) / cat.objects.length) * 100
                   : 0;
               return (
                 <div key={cat.category.id}>
                   <div className="mb-1 flex justify-between text-xs">
                     <span className="text-[var(--text-dim)]">{cat.category.name}</span>
                     <span className="font-mono text-[var(--text-muted)]">
-                      {cat.deletedCount + cat.failedCount}/{cat.objects.length}
+                      {cat.deletedCount + cat.failedCount + cat.skippedCount}/{cat.objects.length}
                     </span>
                   </div>
                   <div className="progress-bar h-1.5">

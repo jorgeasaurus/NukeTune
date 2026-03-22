@@ -44,7 +44,8 @@ interface NukeTuneState {
     categoryId: string,
     progress: number,
     deletedCount: number,
-    failedCount: number
+    failedCount: number,
+    skippedCount: number
   ) => void;
   openPreview: () => void;
   closePreview: () => void;
@@ -66,6 +67,7 @@ const initialCategories: CategoryState[] = INTUNE_CATEGORIES.map((category) => (
   deletionProgress: 0,
   deletedCount: 0,
   failedCount: 0,
+  skippedCount: 0,
 }));
 
 export const useNukeTuneStore = create<NukeTuneState>()(
@@ -97,6 +99,7 @@ export const useNukeTuneStore = create<NukeTuneState>()(
             deletionProgress: 0,
             deletedCount: 0,
             failedCount: 0,
+            skippedCount: 0,
           })),
         }),
 
@@ -180,11 +183,11 @@ export const useNukeTuneStore = create<NukeTuneState>()(
           ),
         })),
 
-      updateCategoryProgress: (categoryId, progress, deletedCount, failedCount) =>
+      updateCategoryProgress: (categoryId, progress, deletedCount, failedCount, skippedCount) =>
         set((state) => ({
           categories: state.categories.map((cat) =>
             cat.category.id === categoryId
-              ? { ...cat, deletionProgress: progress, deletedCount, failedCount }
+              ? { ...cat, deletionProgress: progress, deletedCount, failedCount, skippedCount }
               : cat
           ),
         })),
@@ -243,6 +246,7 @@ export const useDeletionStats = () =>
       return {
         totalDeleted: selected.reduce((sum, cat) => sum + cat.deletedCount, 0),
         totalFailed: selected.reduce((sum, cat) => sum + cat.failedCount, 0),
+        totalSkipped: selected.reduce((sum, cat) => sum + cat.skippedCount, 0),
         totalObjects: selected.reduce((sum, cat) => sum + cat.objects.filter((obj) => obj.selected).length, 0),
       };
     })
