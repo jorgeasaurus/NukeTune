@@ -7,6 +7,8 @@ import type {
   IntuneObject,
 } from "~/types/intune";
 import { INTUNE_CATEGORIES } from "~/lib/intune/categories";
+import { setObjectSelection } from "~/utils/objectSelection";
+import type { ObjectSelectionTarget } from "~/utils/objectSelection";
 
 export type DeletionPhase = "idle" | "preview" | "confirming" | "deleting" | "complete";
 
@@ -36,8 +38,7 @@ interface NukeTuneState {
   deselectAllCategories: () => void;
   setCategoryObjects: (categoryId: string, objects: IntuneObject[]) => void;
   toggleObjectSelection: (categoryId: string, objectId: string) => void;
-  selectAllObjects: (categoryId: string) => void;
-  deselectAllObjects: (categoryId: string) => void;
+  setObjectSelection: (targets: ObjectSelectionTarget[], selected: boolean) => void;
   setCategoryLoading: (categoryId: string, loading: boolean) => void;
   setCategoryError: (categoryId: string, error: string | null) => void;
   updateCategoryProgress: (
@@ -151,23 +152,28 @@ export const useNukeTuneStore = create<NukeTuneState>()(
           ),
         })),
 
-      selectAllObjects: (categoryId) =>
-        set((state) => ({
-          categories: state.categories.map((cat) =>
-            cat.category.id === categoryId
-              ? { ...cat, objects: cat.objects.map((obj) => ({ ...obj, selected: true })) }
-              : cat
-          ),
-        })),
+      setObjectSelection: (targets, selected) =>
+        set((state) => {
+          const objectIdsByCategory = new Map<string, string[]>();
 
-      deselectAllObjects: (categoryId) =>
-        set((state) => ({
-          categories: state.categories.map((cat) =>
-            cat.category.id === categoryId
-              ? { ...cat, objects: cat.objects.map((obj) => ({ ...obj, selected: false })) }
-              : cat
-          ),
-        })),
+          for (const target of targets) {
+            const objectIds = objectIdsByCategory.get(target.categoryId) ?? [];
+            objectIds.push(target.objectId);
+            objectIdsByCategory.set(target.categoryId, objectIds);
+          }
+
+          return {
+            categories: state.categories.map((cat) => {
+              const objectIds = objectIdsByCategory.get(cat.category.id);
+              return objectIds
+                ? {
+                    ...cat,
+                    objects: setObjectSelection(cat.objects, objectIds, selected),
+                  }
+                : cat;
+            }),
+          };
+        }),
 
       setCategoryLoading: (categoryId, loading) =>
         set((state) => ({

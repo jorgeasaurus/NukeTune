@@ -2,6 +2,7 @@ import { graphGetAllPages, graphDelete, parseGraphError } from "../graph/graphCl
 import { isProtectedObject } from "./categories";
 import type { IntuneObject, IntuneCategory, DeletionLogEntry } from "~/types/intune";
 import { processBatch } from "~/utils/batchProcessor";
+export { exportLogToCsv } from "~/utils/csv";
 
 export async function fetchCategoryObjects(
   category: IntuneCategory
@@ -140,27 +141,6 @@ export async function deleteCategoryObjects(
   );
 
   return { deleted, failed, skipped };
-}
-
-export function exportLogToCsv(log: DeletionLogEntry[]): string {
-  const headers = ["Timestamp", "Category", "Object ID", "Object Name", "Status", "Message"];
-  const rows = log.map((entry) => [
-    entry.timestamp.toISOString(),
-    entry.categoryName,
-    entry.objectId,
-    entry.objectName,
-    entry.status,
-    entry.message ?? "",
-  ]);
-
-  const csvContent = [
-    headers.join(","),
-    ...rows.map((row) =>
-      row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(",")
-    ),
-  ].join("\n");
-
-  return csvContent;
 }
 
 export function downloadCsv(content: string, filename: string): void {
