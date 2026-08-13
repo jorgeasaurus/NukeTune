@@ -2,7 +2,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { useIsAuthenticated } from "@azure/msal-react";
 import { useRouter } from "next/router";
-import { SignInButton } from "~/components/auth";
+import { useState } from "react";
+import { SignInButton, CloudEnvironmentSelector } from "~/components/auth";
 import { signIn } from "~/lib/auth/authUtils";
 
 const navLinkClass =
@@ -11,8 +12,10 @@ const navLinkClass =
 export function Navigation() {
   const isAuthenticated = useIsAuthenticated();
   const router = useRouter();
+  const [showCloudSelector, setShowCloudSelector] = useState(false);
 
   async function handleSignIn() {
+    setShowCloudSelector(false);
     try {
       await signIn();
       void router.push("/dashboard");
@@ -74,13 +77,19 @@ export function Navigation() {
               </Link>
             ) : (
               <SignInButton
-                onClick={() => void handleSignIn()}
+                onClick={() => setShowCloudSelector(true)}
                 className="btn-terminal flex items-center gap-2 rounded-lg px-4 py-2 text-xs"
               />
             )}
           </div>
         </nav>
       </div>
+
+      <CloudEnvironmentSelector
+        open={showCloudSelector}
+        onContinue={() => void handleSignIn()}
+        onCancel={() => setShowCloudSelector(false)}
+      />
     </>
   );
 }

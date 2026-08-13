@@ -3,7 +3,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useIsAuthenticated } from "@azure/msal-react";
-import { SignInButton } from "~/components/auth";
+import { useState } from "react";
+import { SignInButton, CloudEnvironmentSelector } from "~/components/auth";
 import { GradientBackground } from "~/components/ui/GradientBackground";
 import { Navigation } from "~/components/ui/Navigation";
 import { signIn } from "~/lib/auth/authUtils";
@@ -11,8 +12,14 @@ import { signIn } from "~/lib/auth/authUtils";
 export default function Home() {
   const isAuthenticated = useIsAuthenticated();
   const router = useRouter();
+  const [showCloudSelector, setShowCloudSelector] = useState(false);
 
-  const handleSignInClick = async () => {
+  const handleSignInClick = () => {
+    setShowCloudSelector(true);
+  };
+
+  const handleCloudContinue = async () => {
+    setShowCloudSelector(false);
     try {
       await signIn();
       void router.push("/dashboard");
@@ -99,6 +106,12 @@ export default function Home() {
               </div>
             </div>
           </section>
+
+          <CloudEnvironmentSelector
+            open={showCloudSelector}
+            onContinue={() => void handleCloudContinue()}
+            onCancel={() => setShowCloudSelector(false)}
+          />
 
           {/* Warning Banner */}
           <section className="container mx-auto px-4 py-8">

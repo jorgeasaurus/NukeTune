@@ -1,0 +1,1 @@
+- Preserve established interaction patterns when narrowing supported options; remove unsupported choices without redesigning the surrounding control unless requested.
