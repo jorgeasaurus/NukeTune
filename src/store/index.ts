@@ -7,7 +7,7 @@ import type {
   IntuneObject,
 } from "~/types/intune";
 import { INTUNE_CATEGORIES } from "~/lib/intune/categories";
-import { setObjectSelection } from "~/utils/objectSelection";
+import { setObjectSelection as updateObjectSelection } from "~/utils/objectSelection";
 import type { ObjectSelectionTarget } from "~/utils/objectSelection";
 
 export type DeletionPhase = "idle" | "preview" | "confirming" | "deleting" | "complete";
@@ -168,7 +168,7 @@ export const useNukeTuneStore = create<NukeTuneState>()(
               return objectIds
                 ? {
                     ...cat,
-                    objects: setObjectSelection(cat.objects, objectIds, selected),
+                    objects: updateObjectSelection(cat.objects, objectIds, selected),
                   }
                 : cat;
             }),
