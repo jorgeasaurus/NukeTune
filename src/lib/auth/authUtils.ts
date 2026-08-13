@@ -13,7 +13,11 @@ export async function signIn(): Promise<AccountInfo> {
 
   if (response.account) {
     if (!isCommercialAuthorityEnvironment(response.account.environment)) {
-      await msalInstance.clearCache({ account: response.account });
+      try {
+        await msalInstance.clearCache({ account: response.account });
+      } catch (error) {
+        console.error("Failed to clear an unsupported cloud account", error);
+      }
       throw new Error(
         "Sign in failed: NukeTune supports Global Commercial tenants only",
       );
