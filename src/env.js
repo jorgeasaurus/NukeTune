@@ -17,9 +17,7 @@ export const env = createEnv({
    */
   client: {
     NEXT_PUBLIC_MSAL_CLIENT_ID: z.string().min(1),
-    NEXT_PUBLIC_MSAL_AUTHORITY: z.string().url(),
     NEXT_PUBLIC_MSAL_REDIRECT_URI: z.string().url(),
-    NEXT_PUBLIC_CLOUD_ENVIRONMENT: z.enum(["global", "usgov", "usgovdod", "germany", "china"]).default("global"),
   },
 
   /**
@@ -29,9 +27,7 @@ export const env = createEnv({
   runtimeEnv: {
     NODE_ENV: process.env.NODE_ENV,
     NEXT_PUBLIC_MSAL_CLIENT_ID: process.env.NEXT_PUBLIC_MSAL_CLIENT_ID,
-    NEXT_PUBLIC_MSAL_AUTHORITY: process.env.NEXT_PUBLIC_MSAL_AUTHORITY,
     NEXT_PUBLIC_MSAL_REDIRECT_URI: process.env.NEXT_PUBLIC_MSAL_REDIRECT_URI,
-    NEXT_PUBLIC_CLOUD_ENVIRONMENT: process.env.NEXT_PUBLIC_CLOUD_ENVIRONMENT,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

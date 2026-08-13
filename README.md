@@ -19,14 +19,6 @@ Bulk deletion tool for Microsoft Intune environments. Reset your tenant by remov
 ## Screenshots
 
 <p align="center">
-  <img src="fullhomepage.jpeg" alt="Homepage" width="100%" />
-</p>
-
-<p align="center">
-  <img src="cloudenv.jpeg" alt="Cloud Environment Selection" width="80%" />
-</p>
-
-<p align="center">
   <img src="fullpagecontrolpanel.jpeg" alt="Control Panel" width="100%" />
 </p>
 
@@ -37,7 +29,7 @@ Bulk deletion tool for Microsoft Intune environments. Reset your tenant by remov
 ## Features
 
 - Delete objects across 25+ Intune categories
-- Multi-cloud support (Commercial, GCC High, DoD, Germany, China)
+- Microsoft Global Commercial Intune support
 - Preview before deletion
 - Progress tracking and deletion logs
 - No app registration required (multitenant)
@@ -61,15 +53,15 @@ Bulk deletion tool for Microsoft Intune environments. Reset your tenant by remov
 
 1. Go to [nuketune.com](https://nuketune.com)
 2. Click **Sign in with Microsoft**
-3. Select your cloud environment
-4. Authenticate and grant consent (if prompted)
-5. Select categories to delete
-6. Click **Preview Deletion** to review objects
-7. Type `DELETE` to confirm
+3. Authenticate to your Global Commercial tenant and grant consent (if prompted)
+4. Select categories to delete
+5. Click **Preview Deletion** to review objects
+6. Type `DELETE` to confirm
 
 ## Requirements
 
 - Intune Administrator or Global Administrator role
+- Microsoft Intune tenant in the Global Commercial cloud; sovereign clouds are not supported
 - Admin consent for required permissions (prompted on first sign-in)
 
 ## Required Permissions
@@ -105,9 +97,7 @@ Runs on `http://localhost:4000`
 
 ```
 NEXT_PUBLIC_MSAL_CLIENT_ID=your-app-id
-NEXT_PUBLIC_MSAL_AUTHORITY=https://login.microsoftonline.com/common
 NEXT_PUBLIC_MSAL_REDIRECT_URI=http://localhost:4000
-NEXT_PUBLIC_CLOUD_ENVIRONMENT=global
 ```
 
 ## Warning
