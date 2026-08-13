@@ -3,10 +3,34 @@ import test from "node:test";
 
 import { encodeCsvCell, exportLogToCsv } from "../src/utils/csv.js";
 import {
+  COMMERCIAL_AUTHORITY_HOST,
+  COMMERCIAL_COMMON_AUTHORITY,
+  COMMERCIAL_GRAPH_BASE_URL,
+  isCommercialAuthorityEnvironment,
+} from "../src/lib/msal/commercialCloud.js";
+import {
   filterVisibleObjects,
   getObjectSelectionTargets,
   setObjectSelection,
 } from "../src/utils/objectSelection.js";
+
+test("Microsoft endpoints are fixed to the Global Commercial cloud", () => {
+  assert.equal(COMMERCIAL_AUTHORITY_HOST, "https://login.microsoftonline.com");
+  assert.equal(
+    COMMERCIAL_COMMON_AUTHORITY,
+    "https://login.microsoftonline.com/common",
+  );
+  assert.equal(COMMERCIAL_GRAPH_BASE_URL, "https://graph.microsoft.com");
+  assert.equal(isCommercialAuthorityEnvironment("login.windows.net"), true);
+  assert.equal(
+    isCommercialAuthorityEnvironment("login.microsoftonline.us"),
+    false,
+  );
+  assert.equal(
+    isCommercialAuthorityEnvironment("login.chinacloudapi.cn"),
+    false,
+  );
+});
 
 test("selection targets contain only objects visible to search and category filters", () => {
   const visibleObjects = filterVisibleObjects(

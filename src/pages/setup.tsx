@@ -18,7 +18,7 @@ export default function Setup() {
 
           <main className="mx-auto max-w-4xl px-4 pt-32 pb-12">
             <div className="mb-8">
-              <span className="text-xs font-medium uppercase tracking-wider text-[var(--danger-red)]">
+              <span className="text-xs font-medium tracking-wider text-[var(--danger-red)] uppercase">
                 {"//"} DOCUMENTATION
               </span>
               <h1 className="font-display mt-2 text-4xl font-bold tracking-tight text-white">
@@ -34,7 +34,7 @@ export default function Setup() {
 
               {/* Step 1 */}
               <section>
-                <div className="flex items-center gap-3 mb-4">
+                <div className="mb-4 flex items-center gap-3">
                   <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--terminal-green)]/10 font-mono text-sm font-bold text-[var(--terminal-green)]">
                     01
                   </span>
@@ -49,7 +49,7 @@ export default function Setup() {
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-[var(--terminal-green)]">$</span>
-                    Select your cloud environment (Commercial, GCC High, DoD, etc.)
+                    Sign in to a Microsoft Global Commercial tenant
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-[var(--terminal-green)]">$</span>
@@ -57,14 +57,15 @@ export default function Setup() {
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-[var(--terminal-green)]">$</span>
-                    If prompted, grant admin consent for the required permissions
+                    If prompted, grant admin consent for the required
+                    permissions
                   </li>
                 </ol>
               </section>
 
               {/* Step 2 */}
               <section>
-                <div className="flex items-center gap-3 mb-4">
+                <div className="mb-4 flex items-center gap-3">
                   <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--warning-amber)]/10 font-mono text-sm font-bold text-[var(--warning-amber)]">
                     02
                   </span>
@@ -73,7 +74,8 @@ export default function Setup() {
                   </h2>
                 </div>
                 <p className="mb-4 text-sm text-[var(--text-dim)]">
-                  On the dashboard, select the Intune object categories you want to delete:
+                  On the dashboard, select the Intune object categories you want
+                  to delete:
                 </p>
                 <div className="grid gap-2 sm:grid-cols-2">
                   {[
@@ -99,7 +101,7 @@ export default function Setup() {
 
               {/* Step 3 */}
               <section>
-                <div className="flex items-center gap-3 mb-4">
+                <div className="mb-4 flex items-center gap-3">
                   <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--danger-red)]/10 font-mono text-sm font-bold text-[var(--danger-red)]">
                     03
                   </span>
@@ -110,15 +112,21 @@ export default function Setup() {
                 <ol className="console-panel space-y-2 p-4 text-sm text-[var(--text-dim)]">
                   <li className="flex items-start gap-2">
                     <span className="text-[var(--terminal-green)]">$</span>
-                    Click &quot;Preview Deletion&quot; to see all objects that will be affected
+                    Click &quot;Preview Deletion&quot; to see all objects that
+                    will be affected
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-[var(--terminal-green)]">$</span>
-                    Review the list carefully - this shows actual data from your tenant
+                    Review the list carefully - this shows actual data from your
+                    tenant
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-[var(--terminal-green)]">$</span>
-                    Type <code className="rounded bg-[var(--danger-red)]/20 px-2 py-0.5 font-mono text-[var(--danger-red)]">DELETE</code> to confirm
+                    Type{" "}
+                    <code className="rounded bg-[var(--danger-red)]/20 px-2 py-0.5 font-mono text-[var(--danger-red)]">
+                      DELETE
+                    </code>{" "}
+                    to confirm
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-[var(--terminal-green)]">$</span>
@@ -133,9 +141,10 @@ export default function Setup() {
                   Required Permissions
                 </h2>
                 <p className="mb-4 text-sm text-[var(--text-dim)]">
-                  The signed-in user must have one of the following Intune administrator roles:
+                  The signed-in user must have one of the following Intune
+                  administrator roles:
                 </p>
-                <div className="flex gap-4 mb-6">
+                <div className="mb-6 flex gap-4">
                   <div className="flex items-center gap-2 rounded-lg border border-[var(--terminal-green)]/30 bg-[var(--terminal-green)]/5 px-4 py-2 text-sm text-[var(--terminal-green)]">
                     <span className="status-dot status-dot-active" />
                     Intune Administrator
@@ -148,7 +157,9 @@ export default function Setup() {
 
                 <div className="console-panel overflow-hidden">
                   <div className="console-panel-header">
-                    <span className="console-panel-title">API Permissions Used</span>
+                    <span className="console-panel-title">
+                      API Permissions Used
+                    </span>
                   </div>
                   <div className="divide-y divide-[var(--console-border)]">
                     {[
@@ -162,7 +173,7 @@ export default function Setup() {
                     ].map((permission) => (
                       <div
                         key={permission}
-                        className="px-4 py-3 text-xs font-mono text-cyan-400 transition-colors hover:bg-white/[0.02]"
+                        className="px-4 py-3 font-mono text-xs text-cyan-400 transition-colors hover:bg-white/[0.02]"
                       >
                         {permission}
                       </div>
@@ -173,7 +184,7 @@ export default function Setup() {
 
               {/* Warning */}
               <div className="banner-warning p-6">
-                <h3 className="flex items-center gap-2 font-display text-sm font-semibold uppercase tracking-wider text-[var(--warning-amber)]">
+                <h3 className="font-display flex items-center gap-2 text-sm font-semibold tracking-wider text-[var(--warning-amber)] uppercase">
                   <svg
                     className="h-5 w-5"
                     fill="none"
@@ -196,7 +207,8 @@ export default function Setup() {
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="mt-1.5 h-1 w-1 rounded-full bg-[var(--warning-amber)]" />
-                    Only use NukeTune with test/dev tenants unless you fully understand the consequences
+                    Only use NukeTune with test/dev tenants unless you fully
+                    understand the consequences
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="mt-1.5 h-1 w-1 rounded-full bg-[var(--warning-amber)]" />
@@ -213,9 +225,9 @@ export default function Setup() {
                 </ul>
               </div>
 
-              {/* Multi-Cloud */}
+              {/* Supported Cloud */}
               <div className="console-panel p-6">
-                <h3 className="flex items-center gap-2 font-display text-sm font-semibold uppercase tracking-wider text-cyan-400">
+                <h3 className="font-display flex items-center gap-2 text-sm font-semibold tracking-wider text-cyan-400 uppercase">
                   <svg
                     className="h-5 w-5"
                     fill="none"
@@ -229,26 +241,21 @@ export default function Setup() {
                       d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"
                     />
                   </svg>
-                  Multi-Cloud Support
+                  Supported Cloud
                 </h3>
                 <p className="mt-4 text-sm text-[var(--text-dim)]">
-                  NukeTune supports multiple Microsoft cloud environments:
-                </p>
-                <ul className="mt-3 space-y-1 text-sm text-[var(--text-dim)]">
-                  <li>Global (Commercial)</li>
-                  <li>US Government (GCC High)</li>
-                  <li>US Government (DoD)</li>
-                  <li>Germany</li>
-                  <li>China (21Vianet)</li>
-                </ul>
-                <p className="mt-4 text-sm text-[var(--text-dim)]">
-                  Select your environment when signing in.
+                  NukeTune supports Microsoft Intune in the Global Commercial
+                  cloud only. Government and other sovereign cloud environments
+                  are not supported.
                 </p>
               </div>
 
               {/* Back Button */}
               <div className="flex gap-4">
-                <Link href="/" className="btn-terminal inline-flex items-center gap-2">
+                <Link
+                  href="/"
+                  className="btn-terminal inline-flex items-center gap-2"
+                >
                   <svg
                     className="h-4 w-4"
                     fill="none"

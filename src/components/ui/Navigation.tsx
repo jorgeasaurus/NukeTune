@@ -2,10 +2,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { useIsAuthenticated } from "@azure/msal-react";
 import { useRouter } from "next/router";
-import { useState } from "react";
-import { SignInButton, CloudEnvironmentSelector } from "~/components/auth";
+import { SignInButton } from "~/components/auth";
 import { signIn } from "~/lib/auth/authUtils";
-import type { CloudEnvironment } from "~/types/cloud";
 
 const navLinkClass =
   "rounded-md px-3 py-2 text-xs font-medium uppercase tracking-wider text-[var(--text-dim)] transition-colors hover:bg-white/5 hover:text-white";
@@ -13,12 +11,10 @@ const navLinkClass =
 export function Navigation() {
   const isAuthenticated = useIsAuthenticated();
   const router = useRouter();
-  const [showCloudSelector, setShowCloudSelector] = useState(false);
 
-  async function handleCloudSelect(environment: CloudEnvironment) {
-    setShowCloudSelector(false);
+  async function handleSignIn() {
     try {
-      await signIn(environment);
+      await signIn();
       void router.push("/dashboard");
     } catch (error) {
       console.error("Sign in error:", error);
@@ -78,19 +74,13 @@ export function Navigation() {
               </Link>
             ) : (
               <SignInButton
-                onClick={() => setShowCloudSelector(true)}
+                onClick={() => void handleSignIn()}
                 className="btn-terminal flex items-center gap-2 rounded-lg px-4 py-2 text-xs"
               />
             )}
           </div>
         </nav>
       </div>
-
-      <CloudEnvironmentSelector
-        open={showCloudSelector}
-        onSelect={handleCloudSelect}
-        onCancel={() => setShowCloudSelector(false)}
-      />
     </>
   );
 }

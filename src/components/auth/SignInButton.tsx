@@ -23,7 +23,7 @@ export function SignInButton({ className, onClick }: SignInButtonProps) {
         <rect x="11" y="1" width="9" height="9" fill="#7fba00" />
         <rect x="11" y="11" width="9" height="9" fill="#ffb900" />
       </svg>
-      Sign in with Microsoft
+      Sign in with Microsoft (Commercial)
     </button>
   );
 }

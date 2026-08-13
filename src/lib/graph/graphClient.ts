@@ -1,8 +1,11 @@
 import { Client } from "@microsoft/microsoft-graph-client";
 import { msalInstance, loginRequest } from "../msal";
-import type { GraphListResponse, IntuneObject, GraphError } from "~/types/intune";
-
-const GRAPH_BASE_URL = "https://graph.microsoft.com";
+import { COMMERCIAL_GRAPH_BASE_URL } from "../msal/commercialCloud";
+import type {
+  GraphListResponse,
+  IntuneObject,
+  GraphError,
+} from "~/types/intune";
 
 async function getAccessToken(): Promise<string> {
   const account = msalInstance.getActiveAccount();
@@ -34,22 +37,26 @@ export async function getGraphClient(): Promise<Client> {
 
 export async function graphGet<T>(
   endpoint: string,
-  useBeta = true
+  useBeta = true,
 ): Promise<T> {
   const client = await getGraphClient();
-  const baseUrl = useBeta ? `${GRAPH_BASE_URL}/beta` : `${GRAPH_BASE_URL}/v1.0`;
+  const baseUrl = useBeta
+    ? `${COMMERCIAL_GRAPH_BASE_URL}/beta`
+    : `${COMMERCIAL_GRAPH_BASE_URL}/v1.0`;
   const url = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
   return client.api(`${baseUrl}${url}`).get() as Promise<T>;
 }
 
 export async function graphGetAllPages<T extends IntuneObject>(
   endpoint: string,
-  useBeta = true
+  useBeta = true,
 ): Promise<T[]> {
   const allItems: T[] = [];
   let nextLink: string | undefined = undefined;
   const client = await getGraphClient();
-  const baseUrl = useBeta ? `${GRAPH_BASE_URL}/beta` : `${GRAPH_BASE_URL}/v1.0`;
+  const baseUrl = useBeta
+    ? `${COMMERCIAL_GRAPH_BASE_URL}/beta`
+    : `${COMMERCIAL_GRAPH_BASE_URL}/v1.0`;
   const url = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
 
   let response = (await client
@@ -74,10 +81,12 @@ export async function graphGetAllPages<T extends IntuneObject>(
 
 export async function graphDelete(
   endpoint: string,
-  useBeta = true
+  useBeta = true,
 ): Promise<void> {
   const client = await getGraphClient();
-  const baseUrl = useBeta ? `${GRAPH_BASE_URL}/beta` : `${GRAPH_BASE_URL}/v1.0`;
+  const baseUrl = useBeta
+    ? `${COMMERCIAL_GRAPH_BASE_URL}/beta`
+    : `${COMMERCIAL_GRAPH_BASE_URL}/v1.0`;
   const url = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
   await client.api(`${baseUrl}${url}`).delete();
 }
@@ -116,7 +125,8 @@ export function parseGraphError(error: unknown): GraphError {
   return {
     statusCode: 500,
     code: "UnknownError",
-    message: error instanceof Error ? error.message : "An unknown error occurred",
+    message:
+      error instanceof Error ? error.message : "An unknown error occurred",
   };
 }
 

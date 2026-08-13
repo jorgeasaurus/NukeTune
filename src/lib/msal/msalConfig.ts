@@ -1,11 +1,19 @@
 import { type Configuration, LogLevel } from "@azure/msal-browser";
+import {
+  COMMERCIAL_COMMON_AUTHORITY,
+  COMMERCIAL_GRAPH_BASE_URL,
+} from "./commercialCloud";
 
 export const msalConfig: Configuration = {
   auth: {
     clientId: process.env.NEXT_PUBLIC_MSAL_CLIENT_ID ?? "",
-    authority: process.env.NEXT_PUBLIC_MSAL_AUTHORITY ?? "https://login.microsoftonline.com/common",
-    redirectUri: process.env.NEXT_PUBLIC_MSAL_REDIRECT_URI ?? (typeof window !== "undefined" ? window.location.origin : ""),
-    postLogoutRedirectUri: process.env.NEXT_PUBLIC_MSAL_REDIRECT_URI ?? (typeof window !== "undefined" ? window.location.origin : ""),
+    authority: COMMERCIAL_COMMON_AUTHORITY,
+    redirectUri:
+      process.env.NEXT_PUBLIC_MSAL_REDIRECT_URI ??
+      (typeof window !== "undefined" ? window.location.origin : ""),
+    postLogoutRedirectUri:
+      process.env.NEXT_PUBLIC_MSAL_REDIRECT_URI ??
+      (typeof window !== "undefined" ? window.location.origin : ""),
     navigateToLoginRequestUrl: true,
   },
   cache: {
@@ -45,10 +53,5 @@ export const loginRequest = {
 };
 
 export const graphScopes = {
-  default: ["https://graph.microsoft.com/.default"],
+  default: [`${COMMERCIAL_GRAPH_BASE_URL}/.default`],
 };
-
-export type CloudEnvironment = "global" | "usgov" | "usgovdod" | "germany" | "china";
-
-export const cloudEnvironment: CloudEnvironment =
-  (process.env.NEXT_PUBLIC_CLOUD_ENVIRONMENT as CloudEnvironment) ?? "global";
