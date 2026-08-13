@@ -32,7 +32,14 @@ export async function initializeMsal(): Promise<void> {
         msalInstance.setActiveAccount(payload.account);
       } else {
         msalInstance.setActiveAccount(null);
-        void msalInstance.clearCache({ account: payload.account });
+        void msalInstance
+          .clearCache({ account: payload.account })
+          .catch((error: unknown) => {
+            console.error(
+              "Failed to clear an unsupported cloud account",
+              error,
+            );
+          });
       }
     }
   });
