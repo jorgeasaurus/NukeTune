@@ -3,11 +3,20 @@ import {
   EventType,
   type EventMessage,
   type AuthenticationResult,
+  type AccountInfo,
 } from "@azure/msal-browser";
 import { msalConfig } from "./msalConfig";
 import { isCommercialAuthorityEnvironment } from "./commercialCloud";
 
 export const msalInstance = new PublicClientApplication(msalConfig);
+
+async function clearUnsupportedAccount(account: AccountInfo): Promise<void> {
+  try {
+    await msalInstance.clearCache({ account });
+  } catch (error) {
+    console.error("Failed to clear an unsupported cloud account", error);
+  }
+}
 
 export async function initializeMsal(): Promise<void> {
   await msalInstance.initialize();
@@ -20,9 +29,7 @@ export async function initializeMsal(): Promise<void> {
     (account) => !isCommercialAuthorityEnvironment(account.environment),
   );
 
-  await Promise.all(
-    incompatibleAccounts.map((account) => msalInstance.clearCache({ account })),
-  );
+  await Promise.all(incompatibleAccounts.map(clearUnsupportedAccount));
   msalInstance.setActiveAccount(commercialAccounts[0] ?? null);
 
   msalInstance.addEventCallback((event: EventMessage) => {
@@ -32,14 +39,7 @@ export async function initializeMsal(): Promise<void> {
         msalInstance.setActiveAccount(payload.account);
       } else {
         msalInstance.setActiveAccount(null);
-        void msalInstance
-          .clearCache({ account: payload.account })
-          .catch((error: unknown) => {
-            console.error(
-              "Failed to clear an unsupported cloud account",
-              error,
-            );
-          });
+        void clearUnsupportedAccount(payload.account);
       }
     }
   });

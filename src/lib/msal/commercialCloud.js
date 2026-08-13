@@ -1,5 +1,5 @@
-export const COMMERCIAL_AUTHORITY_HOST = "https://login.microsoftonline.com";
-export const COMMERCIAL_COMMON_AUTHORITY = `${COMMERCIAL_AUTHORITY_HOST}/common`;
+export const COMMERCIAL_AUTHORITY_ORIGIN = "https://login.microsoftonline.com";
+export const COMMERCIAL_COMMON_AUTHORITY = `${COMMERCIAL_AUTHORITY_ORIGIN}/common`;
 export const COMMERCIAL_GRAPH_BASE_URL = "https://graph.microsoft.com";
 
 const COMMERCIAL_AUTHORITY_ALIASES = new Set([

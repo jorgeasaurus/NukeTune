@@ -3,7 +3,7 @@ import test from "node:test";
 
 import { encodeCsvCell, exportLogToCsv } from "../src/utils/csv.js";
 import {
-  COMMERCIAL_AUTHORITY_HOST,
+  COMMERCIAL_AUTHORITY_ORIGIN,
   COMMERCIAL_COMMON_AUTHORITY,
   COMMERCIAL_GRAPH_BASE_URL,
   isCommercialAuthorityEnvironment,
@@ -15,7 +15,10 @@ import {
 } from "../src/utils/objectSelection.js";
 
 test("Microsoft endpoints are fixed to the Global Commercial cloud", () => {
-  assert.equal(COMMERCIAL_AUTHORITY_HOST, "https://login.microsoftonline.com");
+  assert.equal(
+    COMMERCIAL_AUTHORITY_ORIGIN,
+    "https://login.microsoftonline.com",
+  );
   assert.equal(
     COMMERCIAL_COMMON_AUTHORITY,
     "https://login.microsoftonline.com/common",
