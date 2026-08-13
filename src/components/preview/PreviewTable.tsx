@@ -1,6 +1,10 @@
 import { useState, useMemo } from "react";
 import type { CategoryState, IntuneObject } from "~/types/intune";
 import { useNukeTuneStore } from "~/store";
+import {
+  filterVisibleObjects,
+  getObjectSelectionTargets,
+} from "~/utils/objectSelection";
 
 interface PreviewTableProps {
   categories: CategoryState[];
@@ -50,22 +54,6 @@ function getObjectDisplayName(obj: IntuneObject, categoryId: string): string {
   return `ID: ${obj.id.substring(0, 12)}...`;
 }
 
-// Helper to get searchable text from an object
-function getSearchableText(obj: IntuneObject): string {
-  const parts: string[] = [];
-
-  if (typeof obj.displayName === "string") parts.push(obj.displayName);
-  if (typeof obj.name === "string") parts.push(obj.name);
-  if (typeof obj.deviceName === "string") parts.push(obj.deviceName);
-  if (typeof obj.serialNumber === "string") parts.push(obj.serialNumber);
-  if (typeof obj.userPrincipalName === "string") parts.push(obj.userPrincipalName);
-  if (typeof obj.model === "string") parts.push(obj.model);
-  if (typeof obj.manufacturer === "string") parts.push(obj.manufacturer);
-  parts.push(obj.id);
-
-  return parts.join(" ").toLowerCase();
-}
-
 // Helper to get additional info/subtitle for an object
 function getObjectSubtitle(obj: IntuneObject, categoryId: string): string | null {
   if (categoryId === "managed-devices") {
@@ -112,8 +100,7 @@ export function PreviewTable({ categories }: PreviewTableProps) {
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>("all");
 
   const toggleObjectSelection = useNukeTuneStore((s) => s.toggleObjectSelection);
-  const selectAllObjects = useNukeTuneStore((s) => s.selectAllObjects);
-  const deselectAllObjects = useNukeTuneStore((s) => s.deselectAllObjects);
+  const setObjectSelection = useNukeTuneStore((s) => s.setObjectSelection);
 
   const allObjects = useMemo(() => {
     return categories.flatMap((cat) =>
@@ -127,36 +114,18 @@ export function PreviewTable({ categories }: PreviewTableProps) {
   }, [categories]);
 
   const filteredObjects = useMemo(() => {
-    return allObjects.filter((obj) => {
-      const matchesSearch =
-        searchQuery === "" ||
-        getSearchableText(obj).includes(searchQuery.toLowerCase());
-
-      const matchesCategory =
-        selectedCategoryFilter === "all" ||
-        obj.categoryId === selectedCategoryFilter;
-
-      return matchesSearch && matchesCategory;
-    });
+    return filterVisibleObjects(
+      allObjects,
+      searchQuery,
+      selectedCategoryFilter,
+    );
   }, [allObjects, searchQuery, selectedCategoryFilter]);
 
   const selectedCount = allObjects.filter((obj) => obj.selected).length;
   const filteredSelectedCount = filteredObjects.filter((obj) => obj.selected).length;
 
-  const handleSelectAllVisible = () => {
-    if (selectedCategoryFilter === "all") {
-      categories.forEach((cat) => selectAllObjects(cat.category.id));
-    } else {
-      selectAllObjects(selectedCategoryFilter);
-    }
-  };
-
-  const handleDeselectAllVisible = () => {
-    if (selectedCategoryFilter === "all") {
-      categories.forEach((cat) => deselectAllObjects(cat.category.id));
-    } else {
-      deselectAllObjects(selectedCategoryFilter);
-    }
+  const setVisibleObjectSelection = (selected: boolean) => {
+    setObjectSelection(getObjectSelectionTargets(filteredObjects), selected);
   };
 
   const dangerColors = {
@@ -202,17 +171,17 @@ export function PreviewTable({ categories }: PreviewTableProps) {
         <div className="flex gap-2">
           <button
             type="button"
-            onClick={handleSelectAllVisible}
+            onClick={() => setVisibleObjectSelection(true)}
             className="btn-terminal text-xs"
           >
-            Select All
+            Select Visible
           </button>
           <button
             type="button"
-            onClick={handleDeselectAllVisible}
+            onClick={() => setVisibleObjectSelection(false)}
             className="btn-terminal text-xs"
           >
-            Deselect All
+            Deselect Visible
           </button>
         </div>
       </div>
@@ -228,9 +197,9 @@ export function PreviewTable({ categories }: PreviewTableProps) {
                   checked={filteredSelectedCount === filteredObjects.length && filteredObjects.length > 0}
                   onChange={() => {
                     if (filteredSelectedCount === filteredObjects.length) {
-                      handleDeselectAllVisible();
+                      setVisibleObjectSelection(false);
                     } else {
-                      handleSelectAllVisible();
+                      setVisibleObjectSelection(true);
                     }
                   }}
                   className="checkbox-terminal checkbox-danger"
