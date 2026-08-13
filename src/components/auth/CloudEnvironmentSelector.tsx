@@ -47,7 +47,7 @@ export function CloudEnvironmentSelector({
         </div>
 
         <div className="rounded-lg border border-[var(--terminal-green)]/50 bg-[var(--terminal-green)]/5 p-4">
-          <div className="flex items-start gap-4">
+          <label className="flex items-start gap-4">
             <input
               type="radio"
               name="cloudEnvironment"
@@ -64,7 +64,7 @@ export function CloudEnvironmentSelector({
                 Microsoft 365 commercial cloud for worldwide customers
               </p>
             </div>
-          </div>
+          </label>
         </div>
 
         <div className="mt-6 flex justify-end gap-3">
