@@ -4,6 +4,7 @@ import { useNukeTuneStore } from "~/store";
 import {
   filterVisibleObjects,
   getObjectSelectionTargets,
+  isSelectableObject,
 } from "~/utils/objectSelection";
 
 interface PreviewTableProps {
@@ -121,11 +122,16 @@ export function PreviewTable({ categories }: PreviewTableProps) {
     );
   }, [allObjects, searchQuery, selectedCategoryFilter]);
 
-  const selectedCount = allObjects.filter((obj) => obj.selected).length;
-  const filteredSelectedCount = filteredObjects.filter((obj) => obj.selected).length;
+  // Protected objects are shown as locked rows and never count as selected.
+  const selectedCount = allObjects.filter((obj) => obj.selected && isSelectableObject(obj)).length;
+  const protectedCount = allObjects.filter((obj) => !isSelectableObject(obj)).length;
+  const filteredSelectable = filteredObjects.filter(isSelectableObject);
+  const filteredSelectedCount = filteredSelectable.filter((obj) => obj.selected).length;
+  const allVisibleSelected =
+    filteredSelectable.length > 0 && filteredSelectedCount === filteredSelectable.length;
 
   const setVisibleObjectSelection = (selected: boolean) => {
-    setObjectSelection(getObjectSelectionTargets(filteredObjects), selected);
+    setObjectSelection(getObjectSelectionTargets(filteredSelectable), selected);
   };
 
   const dangerColors = {
@@ -154,7 +160,7 @@ export function PreviewTable({ categories }: PreviewTableProps) {
           <option value="all">All Categories</option>
           {categories.map((cat) => (
             <option key={cat.category.id} value={cat.category.id}>
-              {cat.category.name} ({cat.objects.filter((o) => o.selected).length}/{cat.objects.length})
+              {cat.category.name} ({cat.objects.filter((o) => o.selected && isSelectableObject(o)).length}/{cat.objects.length})
             </option>
           ))}
         </select>
@@ -167,6 +173,11 @@ export function PreviewTable({ categories }: PreviewTableProps) {
           <span className="ml-2 text-[var(--danger-red)]">
             ({selectedCount} selected for deletion)
           </span>
+          {protectedCount > 0 && (
+            <span className="ml-2 text-[var(--warning-amber)]">
+              {protectedCount} protected
+            </span>
+          )}
         </div>
         <div className="flex gap-2">
           <button
@@ -194,9 +205,10 @@ export function PreviewTable({ categories }: PreviewTableProps) {
                 <span className="sr-only">Select</span>
                 <input
                   type="checkbox"
-                  checked={filteredSelectedCount === filteredObjects.length && filteredObjects.length > 0}
+                  checked={allVisibleSelected}
+                  disabled={filteredSelectable.length === 0}
                   onChange={() => {
-                    if (filteredSelectedCount === filteredObjects.length) {
+                    if (allVisibleSelected) {
                       setVisibleObjectSelection(false);
                     } else {
                       setVisibleObjectSelection(true);
@@ -223,25 +235,44 @@ export function PreviewTable({ categories }: PreviewTableProps) {
               filteredObjects.map((obj) => {
                 const displayName = getObjectDisplayName(obj, obj.categoryId);
                 const subtitle = getObjectSubtitle(obj, obj.categoryId);
+                const protectedReason = obj._protectedReason;
+                const isSelected = !protectedReason && (obj.selected ?? false);
 
                 return (
                   <tr
                     key={`${obj.categoryId}-${obj.id}`}
                     className={`transition-colors hover:bg-white/[0.02] ${
-                      obj.selected ? "" : "opacity-40"
+                      isSelected ? "" : "opacity-40"
                     }`}
                   >
                     <td className="px-4 py-3">
                       <input
                         type="checkbox"
-                        checked={obj.selected ?? false}
+                        checked={isSelected}
+                        disabled={!!protectedReason}
                         onChange={() => toggleObjectSelection(obj.categoryId, obj.id)}
-                        className="checkbox-terminal checkbox-danger"
-                        aria-label={`Select ${displayName}`}
+                        className={`checkbox-terminal checkbox-danger ${
+                          protectedReason ? "cursor-not-allowed" : ""
+                        }`}
+                        aria-label={
+                          protectedReason
+                            ? `${displayName} is protected: ${protectedReason}`
+                            : `Select ${displayName}`
+                        }
                       />
                     </td>
                     <td className="px-4 py-3">
-                      <div className="text-white">{displayName}</div>
+                      <div className="flex flex-wrap items-center gap-2 text-white">
+                        <span>{displayName}</span>
+                        {protectedReason && (
+                          <span
+                            className="rounded border border-[var(--warning-amber-dim)] px-1.5 py-0.5 text-[10px] uppercase tracking-wider text-[var(--warning-amber)]"
+                            title={protectedReason}
+                          >
+                            protected: {protectedReason}
+                          </span>
+                        )}
+                      </div>
                       {subtitle && (
                         <div className="mt-0.5 text-[10px] text-[var(--text-muted)]">
                           {subtitle}
