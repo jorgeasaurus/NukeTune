@@ -79,8 +79,10 @@ export const INTUNE_CATEGORIES: IntuneCategory[] = [
   },
   {
     id: "app-protection-windows",
-    name: "App Protection (Windows)",
-    description: "Windows Information Protection policies",
+    // Kept under its original id so existing selections keep working; this
+    // endpoint is WIP without enrollment (WIP-WE), which Microsoft has retired.
+    name: "Windows Information Protection (legacy)",
+    description: "Retired WIP policies for devices that are not MDM enrolled",
     dangerLevel: "high",
     listEndpoint: "/deviceAppManagement/windowsInformationProtectionPolicies",
     deleteEndpoint: "/deviceAppManagement/windowsInformationProtectionPolicies",
@@ -130,7 +132,7 @@ export const INTUNE_CATEGORIES: IntuneCategory[] = [
   {
     id: "conditional-access",
     name: "Conditional Access",
-    description: "Azure AD Conditional Access policies",
+    description: "Microsoft Entra Conditional Access policies",
     dangerLevel: "critical",
     listEndpoint: "/identity/conditionalAccess/policies",
     deleteEndpoint: "/identity/conditionalAccess/policies",
@@ -140,7 +142,7 @@ export const INTUNE_CATEGORIES: IntuneCategory[] = [
   {
     id: "entra-groups",
     name: "Entra ID Groups",
-    description: "Azure AD / Entra ID security and Microsoft 365 groups",
+    description: "Microsoft Entra security and Microsoft 365 groups",
     dangerLevel: "critical",
     listEndpoint: "/groups",
     deleteEndpoint: "/groups",
@@ -209,8 +211,10 @@ export const INTUNE_CATEGORIES: IntuneCategory[] = [
   },
   {
     id: "security-baselines",
-    name: "Security Baseline Instances",
-    description: "Security baseline policy instances",
+    // deviceManagement/intents holds template-based security baselines and
+    // the legacy (template-based) endpoint security policies.
+    name: "Security Baselines & Legacy Endpoint Security",
+    description: "Template-based security baselines and legacy endpoint security policies (intents)",
     dangerLevel: "high",
     listEndpoint: "/deviceManagement/intents",
     deleteEndpoint: "/deviceManagement/intents",
