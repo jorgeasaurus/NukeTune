@@ -2,11 +2,8 @@ import { useShallow } from "zustand/react/shallow";
 import { useNukeTuneStore, useDeletionStats } from "~/store";
 import { useIntune } from "~/hooks/useIntune";
 import { sortByDeletionOrder } from "~/lib/intune/deletionOrder";
-import {
-  countRetryableFailures,
-  getProcessedCount,
-  getRunProgress,
-} from "~/utils/deletionRun";
+import { countRetryableFailures } from "~/utils/deletionRun";
+import { CategoryRunProgress } from "./CategoryRunProgress";
 import { DeletionLog } from "./DeletionLog";
 
 export function DeletionProgress() {
@@ -82,7 +79,7 @@ export function DeletionProgress() {
                       : "Executing"}
               </span>
               {dryRun && (
-                <span className="rounded border border-[var(--warning-amber-dim)] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[var(--warning-amber)]">
+                <span className="rounded border border-[var(--warning-amber-dim)] px-1.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-[var(--warning-amber)]">
                   Dry run
                 </span>
               )}
@@ -117,10 +114,11 @@ export function DeletionProgress() {
           )}
         </div>
 
-        {/* Content */}
-        <div className="flex-1 overflow-auto p-6">
+        {/* Content: progress and counts, then the log (where errors show) above
+            the fold; per-category detail is collapsed below it. */}
+        <div className="flex-1 overflow-auto p-4 sm:p-6">
           {/* Overall Progress */}
-          <div className="mb-6">
+          <div className="mb-4 sm:mb-6">
             <div className="mb-2 flex justify-between text-xs uppercase tracking-wider">
               <span className="text-[var(--text-dim)]">Overall Progress</span>
               <span className="font-mono font-medium text-white">{Math.round(overallProgress)}%</span>
@@ -133,103 +131,94 @@ export function DeletionProgress() {
             </div>
           </div>
 
-          {/* Stats Cards */}
-          <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
-            <div className="console-panel rounded-xl p-4 text-center">
-              <div className="font-mono text-3xl font-bold text-[var(--terminal-green)]">
-                {stats.totalDeleted}
+          {/* Stats Cards: deleted green, failed red, skipped amber, remaining neutral */}
+          <dl className="mb-4 grid grid-cols-2 gap-3 sm:mb-6 sm:grid-cols-4 sm:gap-4">
+            {[
+              { label: dryRun ? "Would delete" : "Deleted", value: stats.totalDeleted, color: "text-[var(--terminal-green)]", border: "" },
+              {
+                label: "Failed",
+                value: stats.totalFailed,
+                color: "text-[var(--critical-red)]",
+                border: stats.totalFailed > 0 ? "border-[var(--critical-red)]/60" : "",
+              },
+              { label: "Skipped", value: stats.totalSkipped, color: "text-[var(--warning-amber)]", border: "" },
+              { label: "Remaining", value: stats.totalRemaining, color: "text-[var(--text-dim)]", border: "" },
+            ].map((tile) => (
+              <div
+                key={tile.label}
+                className={`console-panel flex flex-col-reverse rounded-xl p-3 text-center sm:p-4 ${tile.border}`}
+              >
+                <dt className="mt-1 text-xs uppercase tracking-wider text-[var(--text-dim)]">
+                  {tile.label}
+                </dt>
+                <dd className={`font-mono text-2xl font-bold sm:text-3xl ${tile.color}`}>
+                  {tile.value.toLocaleString()}
+                </dd>
               </div>
-              <div className="mt-1 text-xs uppercase tracking-wider text-[var(--text-dim)]">{dryRun ? "Would delete" : "Deleted"}</div>
-            </div>
-            <div className="console-panel rounded-xl p-4 text-center">
-              <div className="font-mono text-3xl font-bold text-[var(--danger-red)]">
-                {stats.totalFailed}
-              </div>
-              <div className="mt-1 text-xs uppercase tracking-wider text-[var(--text-dim)]">Failed</div>
-            </div>
-            <div className="console-panel rounded-xl p-4 text-center">
-              <div className="font-mono text-3xl font-bold text-amber-400">
-                {stats.totalSkipped}
-              </div>
-              <div className="mt-1 text-xs uppercase tracking-wider text-[var(--text-dim)]">Skipped</div>
-            </div>
-            <div className="console-panel rounded-xl p-4 text-center">
-              <div className="font-mono text-3xl font-bold text-[var(--text-dim)]">
-                {stats.totalRemaining}
-              </div>
-              <div className="mt-1 text-xs uppercase tracking-wider text-[var(--text-dim)]">Remaining</div>
-            </div>
-          </div>
+            ))}
+          </dl>
 
-          {/* Category Progress */}
-          <div className="console-panel mb-6 space-y-3 rounded-xl p-4">
-            <h3 className="text-xs font-medium uppercase tracking-wider text-[var(--text-dim)]">
-              Category Progress
-            </h3>
-            {runCategories.map((cat) => {
-              const progress = getRunProgress(cat);
-              return (
-                <div key={cat.category.id}>
-                  <div className="mb-1 flex justify-between text-xs">
-                    <span className="text-[var(--text-dim)]">{cat.category.name}</span>
-                    <span className="font-mono text-[var(--text-muted)]">
-                      {getProcessedCount(cat)}/{cat.runTotal}
-                    </span>
-                  </div>
-                  <div className="progress-bar h-1.5">
-                    <div
-                      className="progress-bar-fill"
-                      style={{ width: `${progress}%` }}
-                    />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          <DeletionLog className="mb-4 h-60 sm:mb-6 sm:h-64" />
 
-          <DeletionLog />
+          <CategoryRunProgress categories={runCategories} />
         </div>
 
-        {/* Footer */}
-        <div className="border-t border-[var(--console-border)] p-6">
-          <div className="flex justify-between">
-            <div className="flex gap-3">
-              {isDeleting && !isComplete && (
-                <>
-                  {isPaused ? (
-                    <button type="button" onClick={resumeDeletion} className="btn-success">
-                      Resume
-                    </button>
-                  ) : (
-                    <button type="button" onClick={pauseDeletion} className="btn-warning">
-                      Pause
-                    </button>
-                  )}
-                  <button type="button" onClick={cancelDeletion} className="btn-terminal">
-                    Cancel
+        {/* Footer: primary action full-width on mobile, grouped on desktop */}
+        <div className="border-t border-[var(--console-border)] p-4 sm:p-6">
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center sm:gap-3 [&>button]:min-h-11 [&>button]:whitespace-nowrap">
+            {isDeleting && !isComplete && (
+              <>
+                {isPaused ? (
+                  <button
+                    type="button"
+                    onClick={resumeDeletion}
+                    className="btn-success col-span-2 sm:col-span-1"
+                  >
+                    Resume
                   </button>
-                </>
-              )}
-            </div>
-            <div className="flex gap-3">
-              <button type="button" onClick={exportLog} className="btn-terminal">
-                Export Log (CSV)
+                ) : (
+                  <button
+                    type="button"
+                    onClick={pauseDeletion}
+                    className="btn-warning col-span-2 sm:col-span-1"
+                  >
+                    Pause
+                  </button>
+                )}
+                <button type="button" onClick={cancelDeletion} className="btn-terminal sm:mr-auto">
+                  Cancel
+                </button>
+              </>
+            )}
+            {isComplete && (
+              <button
+                type="button"
+                onClick={handleClose}
+                className="btn-success col-span-2 sm:order-last sm:col-span-1"
+              >
+                Done
               </button>
-              {isComplete && retryableCount > 0 && (
-                <button
-                  type="button"
-                  onClick={() => void retryFailed()}
-                  className="btn-warning"
-                >
-                  Retry failed ({retryableCount})
-                </button>
-              )}
-              {isComplete && (
-                <button type="button" onClick={handleClose} className="btn-success">
-                  Done
-                </button>
-              )}
-            </div>
+            )}
+            <button
+              type="button"
+              onClick={exportLog}
+              className={`btn-terminal ${
+                isComplete ? `sm:ml-auto ${retryableCount > 0 ? "" : "col-span-2 sm:col-span-1"}` : ""
+              }`}
+            >
+              <span className="sm:hidden">Export CSV</span>
+              <span className="hidden sm:inline">Export Log (CSV)</span>
+            </button>
+            {isComplete && retryableCount > 0 && (
+              <button
+                type="button"
+                onClick={() => void retryFailed()}
+                className="btn-warning"
+              >
+                <span className="sm:hidden">Retry ({retryableCount})</span>
+                <span className="hidden sm:inline">Retry failed ({retryableCount})</span>
+              </button>
+            )}
           </div>
         </div>
       </div>

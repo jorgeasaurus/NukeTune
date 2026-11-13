@@ -38,71 +38,79 @@ export function CategoryCard({ categoryState, onToggle }: CategoryCardProps) {
   const styles = dangerStyles[category.dangerLevel];
   const isDisabled = category.requiresAppPermissions;
 
+  const headingId = `category-${category.id}-name`;
+  const descriptionId = `category-${category.id}-desc`;
+  const statusId = `category-${category.id}-status`;
+
+  // The whole card is the checkbox's <label>, so clicking anywhere on it
+  // toggles the category; the checkbox's name is just the category name.
   return (
-    <div
-      className={`${selected && !isDisabled ? styles.cardSelected : styles.card} ${
-        isDisabled ? "opacity-50 cursor-not-allowed" : ""
+    <label
+      className={`block ${selected && !isDisabled ? styles.cardSelected : styles.card} ${
+        isDisabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"
       }`}
     >
-      <label
-        className={`flex items-start gap-3 ${isDisabled ? "cursor-not-allowed" : "cursor-pointer"}`}
-      >
+      <div className="flex items-start gap-3">
         <input
           type="checkbox"
           checked={selected && !isDisabled}
           onChange={onToggle}
           disabled={isDisabled}
-          className={`mt-0.5 ${styles.checkbox} ${isDisabled ? "opacity-50" : ""}`}
+          aria-labelledby={headingId}
+          aria-describedby={`${descriptionId} ${statusId}`}
+          className={`mt-0.5 shrink-0 ${styles.checkbox} ${isDisabled ? "opacity-50" : ""}`}
         />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <h3 className="font-display text-sm font-semibold text-white truncate">
+            <h3 id={headingId} className="font-display text-sm font-semibold text-white">
               {category.name}
             </h3>
             <span className={styles.badge}>{category.dangerLevel}</span>
           </div>
-          <p className="mt-1.5 text-xs leading-relaxed text-[var(--text-dim)]">
+          <p id={descriptionId} className="mt-1.5 text-xs leading-relaxed text-[var(--text-dim)]">
             {category.description}
           </p>
 
-          {isDisabled && (
-            <p className="mt-3 text-xs text-[var(--warning-amber)]/80">
-              Requires app-only permissions (not supported)
-            </p>
-          )}
+          <div id={statusId}>
+            {isDisabled && (
+              <p className="mt-3 text-xs text-[var(--warning-amber)]/80">
+                Requires app-only permissions (not supported)
+              </p>
+            )}
 
-          {!isDisabled && loading && (
-            <div className="mt-3 flex items-center gap-2">
-              <div className="spinner-terminal" />
-              <p className="text-xs text-[var(--terminal-green)]">Loading...</p>
-            </div>
-          )}
+            {!isDisabled && loading && (
+              <div className="mt-3 flex items-center gap-2">
+                <div className="spinner-terminal" aria-hidden="true" />
+                <p className="text-xs text-[var(--terminal-green)]">Loading...</p>
+              </div>
+            )}
 
-          {!isDisabled && error && (
-            <p className="mt-3 text-xs text-[var(--danger-red)]">{error}</p>
-          )}
+            {!isDisabled && error && (
+              <p className="mt-3 break-words text-xs text-[var(--critical-red)]">{error}</p>
+            )}
 
-          {!isDisabled && !loading && !error && loaded && (
-            <p className="mt-3 text-xs font-medium text-white">
-              <span className="font-mono text-[var(--terminal-green)]">
-                {objects.length}
-              </span>{" "}
-              object{objects.length !== 1 ? "s" : ""} found
-              {protectedCount > 0 && (
-                <span className="ml-1 text-[var(--warning-amber)]">
-                  ({protectedCount} protected)
-                </span>
-              )}
-            </p>
-          )}
+            {!isDisabled && !loading && !error && loaded && (
+              <p className="mt-3 text-xs font-medium text-white">
+                <span className="font-mono text-[var(--terminal-green)]">
+                  {objects.length}
+                </span>{" "}
+                object{objects.length !== 1 ? "s" : ""} found
+                {protectedCount > 0 && (
+                  <span className="ml-1 text-[var(--warning-amber)]">
+                    ({protectedCount} protected)
+                  </span>
+                )}
+              </p>
+            )}
 
-          {!isDisabled && !loading && !error && selected && !loaded && (
-            <p className="mt-3 text-xs text-[var(--text-muted)]">
-              No objects loaded yet
-            </p>
-          )}
+            {!isDisabled && !loading && !error && selected && !loaded && (
+              <p className="mt-3 text-xs text-[var(--text-muted)]">
+                No objects loaded yet
+              </p>
+            )}
+          </div>
         </div>
-      </label>
-    </div>
+      </div>
+    </label>
   );
 }
