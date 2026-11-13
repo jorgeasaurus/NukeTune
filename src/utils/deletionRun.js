@@ -74,7 +74,7 @@ export function beginRun(categories, plan) {
  * Applies one deletion result to its category.
  *
  * Deleted objects are removed so they can no longer be selected or counted
- * as pending; failed objects are remembered for "Retry failed"; skipped
+ * as pending (dry-run successes are only counted); failed objects are remembered for "Retry failed"; skipped
  * objects are deselected.
  *
  * @template {CategoryState} C
@@ -87,6 +87,11 @@ export function applyDeletionEntry(cat, entry) {
 
   switch (entry.status) {
     case "success":
+      // A dry run counts the object as processed but must leave it in place,
+      // still selected, so the user returns to an unchanged preview.
+      if (entry.dryRun) {
+        return { ...cat, deletedCount: cat.deletedCount + 1 };
+      }
       return {
         ...cat,
         deletedCount: cat.deletedCount + 1,

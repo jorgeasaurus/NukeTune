@@ -125,8 +125,8 @@ test("deletion log export applies spreadsheet-safe encoding to dynamic fields", 
   assert.equal(
     csv,
     [
-      "Timestamp,Category,Object ID,Object Name,Status,Message",
-      '"2026-01-01T00:00:00.000Z","\'=CATEGORY()","\'+OBJECT","\'  @HYPERLINK(""https://attacker.invalid"")","error","\'-MESSAGE"',
+      "Timestamp,Category,Object ID,Object Name,Status,Message,Dry Run",
+      '"2026-01-01T00:00:00.000Z","\'=CATEGORY()","\'+OBJECT","\'  @HYPERLINK(""https://attacker.invalid"")","error","\'-MESSAGE","no"',
     ].join("\n"),
   );
 });

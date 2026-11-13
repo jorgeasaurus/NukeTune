@@ -2,7 +2,7 @@ import { graphGetAllPages, graphDelete, parseGraphError } from "../graph/graphCl
 import { getProtectionReason } from "./protection";
 import { buildListEndpoint } from "./endpoints";
 import type { IntuneObject, IntuneCategory, DeletionLogEntry } from "~/types/intune";
-import { processBatch, CancelledError } from "~/utils/batchProcessor";
+import { runCategoryDeletion } from "./deletionPipeline";
 export { exportLogToCsv } from "~/utils/csv";
 
 export async function fetchCategoryObjects(
@@ -73,6 +73,8 @@ export interface DeletionOptions {
   onItemComplete?: (entry: DeletionLogEntry) => void;
   shouldContinue?: () => boolean;
   isPaused?: () => boolean;
+  /** Run the whole pipeline but replace the Graph delete with a no-op. */
+  dryRun?: boolean;
 }
 
 function formatGraphError(error: unknown): string {
@@ -87,80 +89,26 @@ export async function deleteCategoryObjects(
   objects: IntuneObject[],
   options: DeletionOptions = {}
 ): Promise<{ deleted: number; failed: number; skipped: number; cancelled: number }> {
-  const { onItemComplete, shouldContinue = () => true, isPaused = () => false } = options;
-
-  let deleted = 0;
-  let failed = 0;
-  let skipped = 0;
-
-  const entry = (
-    obj: IntuneObject,
-    status: DeletionLogEntry["status"],
-    message?: string
-  ): DeletionLogEntry => ({
-    timestamp: new Date(),
-    categoryId: category.id,
-    categoryName: category.name,
-    objectId: obj.id,
-    objectName: obj.displayName ?? obj.name ?? obj.id,
-    status,
-    ...(message ? { message } : {}),
+  return runCategoryDeletion(category, objects, {
+    ...options,
+    deleteObject,
+    formatError: formatGraphError,
   });
-
-  // Defence in depth: protected objects should never be selected, but
-  // re-check right before deleting.
-  const deletable = objects.filter((obj) => {
-    const reason = obj._protectedReason ?? getProtectionReason(category.id, obj);
-    if (reason) {
-      skipped++;
-      onItemComplete?.(entry(obj, "skipped", `Protected: ${reason}`));
-      return false;
-    }
-    return true;
-  });
-
-  const notFound = new Set<string>();
-
-  const result = await processBatch(
-    deletable,
-    async (obj) => {
-      while (isPaused()) {
-        await new Promise((resolve) => setTimeout(resolve, 500));
-        if (!shouldContinue()) throw new CancelledError();
-      }
-
-      if (!shouldContinue()) throw new CancelledError();
-
-      if ((await deleteObject(category, obj.id)) === "not-found") {
-        notFound.add(obj.id);
-      }
-    },
-    {
-      batchSize: 3,
-      delayBetweenItems: 300,
-      shouldContinue,
-      onItemComplete: (obj, success, error) => {
-        if (success) {
-          deleted++;
-          onItemComplete?.(
-            entry(obj, "success", notFound.has(obj.id) ? "Already removed (404)" : undefined)
-          );
-        } else {
-          failed++;
-          onItemComplete?.(entry(obj, "error", formatGraphError(error)));
-        }
-      },
-    }
-  );
-
-  return { deleted, failed, skipped, cancelled: result.cancelled.length };
 }
 
-export function downloadCsv(content: string, filename: string): void {
-  const blob = new Blob([content], { type: "text/csv;charset=utf-8;" });
+export function downloadFile(content: string, filename: string, mimeType: string): void {
+  const blob = new Blob([content], { type: mimeType });
   const link = document.createElement("a");
   link.href = URL.createObjectURL(blob);
   link.download = filename;
   link.click();
   URL.revokeObjectURL(link.href);
+}
+
+export function downloadCsv(content: string, filename: string): void {
+  downloadFile(content, filename, "text/csv;charset=utf-8;");
+}
+
+export function downloadJson(content: string, filename: string): void {
+  downloadFile(content, filename, "application/json;charset=utf-8;");
 }

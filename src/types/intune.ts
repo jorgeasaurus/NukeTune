@@ -64,6 +64,8 @@ export interface DeletionLogEntry {
   objectName: string;
   status: "success" | "error" | "skipped";
   message?: string;
+  /** Set when the entry comes from a dry run: nothing was deleted. */
+  dryRun?: boolean;
 }
 
 export interface GraphError {

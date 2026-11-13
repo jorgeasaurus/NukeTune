@@ -32,6 +32,7 @@ export function exportLogToCsv(log) {
     "Object Name",
     "Status",
     "Message",
+    "Dry Run",
   ];
   const rows = log.map((entry) => [
     entry.timestamp.toISOString(),
@@ -40,6 +41,7 @@ export function exportLogToCsv(log) {
     entry.objectName,
     entry.status,
     entry.message ?? "",
+    entry.dryRun ? "yes" : "no",
   ]);
 
   return [

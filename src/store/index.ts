@@ -11,6 +11,7 @@ import {
   setObjectSelection as updateObjectSelection,
   toggleObjectSelection as toggleSelection,
   selectAllSelectable,
+  selectOnly,
   isSelectableObject,
 } from "~/utils/objectSelection";
 import type { ObjectSelectionTarget } from "~/utils/objectSelection";
@@ -43,6 +44,8 @@ interface NukeTuneState {
   isPaused: boolean;
   deletionLog: DeletionLogEntry[];
   shouldCancel: boolean;
+  /** The current/last run is a simulation: no Graph writes. */
+  dryRun: boolean;
   // Bumped whenever tenant-scoped state is reset. A running deletion captures
   // it at start and stops as soon as it changes.
   sessionEpoch: number;
@@ -62,9 +65,16 @@ interface NukeTuneState {
   setCategoryObjects: (categoryId: string, objects: IntuneObject[]) => void;
   toggleObjectSelection: (categoryId: string, objectId: string) => void;
   setObjectSelection: (targets: ObjectSelectionTarget[], selected: boolean) => void;
+  /**
+   * Select exactly `targets` within the given categories and deselect every
+   * other object in them.
+   */
+  selectOnlyObjects: (categoryIds: string[], targets: ObjectSelectionTarget[]) => void;
   setCategoryLoading: (categoryId: string, loading: boolean) => void;
   setCategoryError: (categoryId: string, error: string | null) => void;
-  beginDeletionRun: (plan: DeletionPlanEntry[]) => void;
+  beginDeletionRun: (plan: DeletionPlanEntry[], options?: { dryRun?: boolean }) => void;
+  /** Leave a finished dry run and return to the unchanged preview. */
+  finishDryRun: () => void;
   recordDeletionResult: (entry: DeletionLogEntry) => void;
   openPreview: () => void;
   closePreview: () => void;
@@ -106,6 +116,7 @@ export const useNukeTuneStore = create<NukeTuneState>()(
       isPaused: false,
       deletionLog: [],
       shouldCancel: false,
+      dryRun: false,
       sessionEpoch: 0,
 
       // Actions
@@ -197,6 +208,28 @@ export const useNukeTuneStore = create<NukeTuneState>()(
           };
         }),
 
+      selectOnlyObjects: (categoryIds, targets) =>
+        set((state) => {
+          const scope = new Set(categoryIds);
+          const objectIdsByCategory = new Map<string, string[]>();
+          for (const target of targets) {
+            const objectIds = objectIdsByCategory.get(target.categoryId) ?? [];
+            objectIds.push(target.objectId);
+            objectIdsByCategory.set(target.categoryId, objectIds);
+          }
+
+          return {
+            categories: state.categories.map((cat) =>
+              scope.has(cat.category.id)
+                ? {
+                    ...cat,
+                    objects: selectOnly(cat.objects, objectIdsByCategory.get(cat.category.id) ?? []),
+                  }
+                : cat
+            ),
+          };
+        }),
+
       setCategoryLoading: (categoryId, loading) =>
         set((state) => ({
           categories: state.categories.map((cat) =>
@@ -211,12 +244,24 @@ export const useNukeTuneStore = create<NukeTuneState>()(
           ),
         })),
 
-      beginDeletionRun: (plan) =>
+      beginDeletionRun: (plan, options) =>
         set((state) => ({
           categories: beginRun(state.categories, plan),
           deletionPhase: "deleting",
           isPaused: false,
           shouldCancel: false,
+          dryRun: options?.dryRun ?? false,
+        })),
+
+      finishDryRun: () =>
+        set((state) => ({
+          categories: beginRun(state.categories, []),
+          previewOpen: true,
+          deletionPhase: "preview",
+          isPaused: false,
+          shouldCancel: false,
+          dryRun: false,
+          deletionLog: [],
         })),
 
       recordDeletionResult: (entry) =>
@@ -260,6 +305,7 @@ export const useNukeTuneStore = create<NukeTuneState>()(
           isPaused: false,
           deletionLog: [],
           shouldCancel: false,
+          dryRun: false,
         }),
     }),
     { name: "NukeTuneStore" }
