@@ -50,6 +50,11 @@ export function useIntune() {
   const runDeletion = useCallback(
     async (mode: DeletionPlanMode) => {
       const getState = () => useNukeTuneStore.getState();
+      // The store is reset when the account changes or signs out. A run that
+      // outlives its session must stop issuing deletes and must not write its
+      // progress or completion into the next session's state.
+      const sessionEpoch = getState().sessionEpoch;
+      const sessionActive = () => getState().sessionEpoch === sessionEpoch;
       const plan = buildDeletionPlan(getState().categories, mode);
 
       // Single source of truth: the store derives all counts from
@@ -57,7 +62,7 @@ export function useIntune() {
       beginDeletionRun(plan);
 
       for (const { categoryId, objectIds } of plan) {
-        if (getState().shouldCancel) break;
+        if (!sessionActive() || getState().shouldCancel) break;
 
         const catState = getState().categories.find((c) => c.category.id === categoryId);
         if (!catState) continue;
@@ -65,13 +70,15 @@ export function useIntune() {
         const ids = new Set(objectIds);
         const objectsToDelete = catState.objects.filter((obj) => ids.has(obj.id));
         await deleteCategoryObjects(catState.category, objectsToDelete, {
-          onItemComplete: recordDeletionResult,
-          shouldContinue: () => !getState().shouldCancel,
+          onItemComplete: (entry) => {
+            if (sessionActive()) recordDeletionResult(entry);
+          },
+          shouldContinue: () => sessionActive() && !getState().shouldCancel,
           isPaused: () => getState().isPaused,
         });
       }
 
-      setDeletionPhase("complete");
+      if (sessionActive()) setDeletionPhase("complete");
     },
     [beginDeletionRun, recordDeletionResult, setDeletionPhase]
   );
