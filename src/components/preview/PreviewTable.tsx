@@ -168,6 +168,8 @@ export function PreviewTable({ categories }: PreviewTableProps) {
   // Matching selectable objects become the whole deletion set; everything
   // else in the previewed categories is deselected.
   const selectMatchingOnly = () => {
+    // With nothing to select this would only clear the whole deletion set.
+    if (filteredSelectable.length === 0) return;
     selectOnlyObjects(
       categories.map((cat) => cat.category.id),
       getObjectSelectionTargets(filteredSelectable),
@@ -274,9 +276,13 @@ export function PreviewTable({ categories }: PreviewTableProps) {
           <button
             type="button"
             onClick={selectMatchingOnly}
-            disabled={!anyFilterActive}
+            disabled={!anyFilterActive || filteredSelectable.length === 0}
             className="btn-terminal min-w-fit flex-auto px-3 text-xs whitespace-nowrap disabled:cursor-not-allowed disabled:opacity-60 sm:flex-none"
-            title="Select the matching objects and deselect everything else"
+            title={
+              filteredSelectable.length === 0
+                ? "No selectable objects match the current filters"
+                : "Select the matching objects and deselect everything else"
+            }
           >
             Select matching only
           </button>

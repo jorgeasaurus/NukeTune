@@ -93,36 +93,16 @@ export function getUpnDomain(username) {
 }
 
 /**
- * Whether the account is a guest in the tenant it is signed in to. MSAL's
- * `homeAccountId` is `<objectId>.<homeTenantId>`; for a guest that home
- * tenant differs from the resource `tenantId` Graph calls are made against,
- * so the account's UPN domain names the wrong tenant.
- *
- * @param {{ homeAccountId?: string | null, tenantId?: string | null } | null | undefined} account
- * @returns {boolean}
- */
-export function isGuestAccount(account) {
-  const homeAccountId = nonEmptyString(account?.homeAccountId);
-  const tenantId = nonEmptyString(account?.tenantId);
-  if (!homeAccountId || !tenantId) return false;
-  const separator = homeAccountId.lastIndexOf(".");
-  if (separator === -1) return false;
-  const homeTenantId = homeAccountId.slice(separator + 1);
-  return homeTenantId.length > 0 && homeTenantId.toLowerCase() !== tenantId.toLowerCase();
-}
-
-/**
  * What the user must type to confirm deletion: the tenant's primary domain,
- * else the signed-in account's UPN domain, else the generic phrase. The UPN
- * domain is skipped for guests, where it belongs to their home tenant.
+ * else the signed-in account's UPN domain, else the generic phrase.
  *
- * @param {{ tenantDomain?: string | null, username?: string | null, isGuest?: boolean }} input
+ * @param {{ tenantDomain?: string | null, username?: string | null }} input
  * @returns {ConfirmationPhrase}
  */
-export function getConfirmationPhrase({ tenantDomain, username, isGuest = false }) {
+export function getConfirmationPhrase({ tenantDomain, username }) {
   const domain = nonEmptyString(tenantDomain);
   if (domain) return { phrase: domain.toLowerCase(), source: "tenant" };
-  const upnDomain = isGuest ? null : getUpnDomain(username);
+  const upnDomain = getUpnDomain(username);
   if (upnDomain) return { phrase: upnDomain, source: "account" };
   return { phrase: GENERIC_CONFIRMATION_PHRASE, source: "generic" };
 }
@@ -144,12 +124,12 @@ export function isConfirmationMatch(input, phrase) {
  * Human-readable tenant label, e.g. "Contoso (contoso.com)", with fallbacks to
  * whatever is known.
  *
- * @param {{ tenantName?: string | null, tenantDomain?: string | null, tenantId?: string | null, username?: string | null, isGuest?: boolean }} input
+ * @param {{ tenantName?: string | null, tenantDomain?: string | null, tenantId?: string | null, username?: string | null }} input
  * @returns {string}
  */
-export function formatTenantLabel({ tenantName, tenantDomain, tenantId, username, isGuest = false }) {
+export function formatTenantLabel({ tenantName, tenantDomain, tenantId, username }) {
   const name = nonEmptyString(tenantName);
-  const domain = nonEmptyString(tenantDomain) ?? (isGuest ? null : getUpnDomain(username));
+  const domain = nonEmptyString(tenantDomain) ?? getUpnDomain(username);
   if (name && domain && name.toLowerCase() !== domain.toLowerCase()) {
     return `${name} (${domain})`;
   }

@@ -12,7 +12,6 @@ import {
   toggleObjectSelection as toggleSelection,
   selectAllSelectable,
   selectOnly,
-  isSelectableObject,
 } from "~/utils/objectSelection";
 import type { ObjectSelectionTarget } from "~/utils/objectSelection";
 import {
@@ -46,9 +45,6 @@ interface NukeTuneState {
   shouldCancel: boolean;
   /** The current/last run is a simulation: no Graph writes. */
   dryRun: boolean;
-  // Bumped whenever tenant-scoped state is reset. A running deletion captures
-  // it at start and stops as soon as it changes.
-  sessionEpoch: number;
 
   // Actions
   setUser: (name: string | null, tenantId: string | null, tenantName: string | null) => void;
@@ -117,7 +113,6 @@ export const useNukeTuneStore = create<NukeTuneState>()(
       deletionLog: [],
       shouldCancel: false,
       dryRun: false,
-      sessionEpoch: 0,
 
       // Actions
       setUser: (name, tenantId, tenantName) =>
@@ -270,14 +265,7 @@ export const useNukeTuneStore = create<NukeTuneState>()(
           deletionLog: [...state.deletionLog, entry],
         })),
 
-      // Only from idle/preview: while a run is confirming, deleting or showing
-      // its result, reopening the preview would hide the progress dialog.
-      openPreview: () =>
-        set((state) =>
-          state.deletionPhase === "idle" || state.deletionPhase === "preview"
-            ? { previewOpen: true, deletionPhase: "preview" }
-            : {}
-        ),
+      openPreview: () => set({ previewOpen: true, deletionPhase: "preview" }),
 
       closePreview: () =>
         set({ previewOpen: false, deletionPhase: "idle" }),
@@ -318,9 +306,6 @@ export const useNukeTuneStore = create<NukeTuneState>()(
  * the active account changes so tenant A's data never shows under tenant B.
  */
 export function resetTenantSession() {
-  // Invalidate any deletion still running for the previous account before
-  // clearing its state.
-  useNukeTuneStore.setState((current) => ({ sessionEpoch: current.sessionEpoch + 1 }));
   const state = useNukeTuneStore.getState();
   state.reset();
   state.setUser(null, null, null);
@@ -342,11 +327,7 @@ export const useTotalObjectCount = () =>
   useNukeTuneStore((state) =>
     state.categories
       .filter((cat) => cat.selected)
-      .reduce(
-        (sum, cat) =>
-          sum + cat.objects.filter((obj) => obj.selected && isSelectableObject(obj)).length,
-        0
-      )
+      .reduce((sum, cat) => sum + cat.objects.filter((obj) => obj.selected).length, 0)
   );
 
 export const useDeletionStats = () =>

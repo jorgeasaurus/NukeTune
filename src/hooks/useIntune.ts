@@ -32,24 +32,17 @@ export function useIntune() {
 
   const loadCategoryObjects = useCallback(
     async (category: IntuneCategory) => {
-      // A fetch that outlives its session (sign-out or account switch resets
-      // the store) must not write the previous tenant's objects, error or
-      // loading state into the new session.
-      const sessionEpoch = useNukeTuneStore.getState().sessionEpoch;
-      const sessionActive = () =>
-        useNukeTuneStore.getState().sessionEpoch === sessionEpoch;
-
       setCategoryLoading(category.id, true);
       setCategoryError(category.id, null);
 
       try {
         const objects = await fetchCategoryObjects(category);
-        if (sessionActive()) setCategoryObjects(category.id, objects);
+        setCategoryObjects(category.id, objects);
       } catch (error) {
         const message = error instanceof Error ? error.message : "Failed to fetch objects";
-        if (sessionActive()) setCategoryError(category.id, message);
+        setCategoryError(category.id, message);
       } finally {
-        if (sessionActive()) setCategoryLoading(category.id, false);
+        setCategoryLoading(category.id, false);
       }
     },
     [setCategoryLoading, setCategoryError, setCategoryObjects]
@@ -65,11 +58,6 @@ export function useIntune() {
   const runDeletion = useCallback(
     async (mode: DeletionPlanMode, dryRun: boolean) => {
       const getState = () => useNukeTuneStore.getState();
-      // The store is reset when the account changes or signs out. A run that
-      // outlives its session must stop issuing deletes and must not write its
-      // progress or completion into the next session's state.
-      const sessionEpoch = getState().sessionEpoch;
-      const sessionActive = () => getState().sessionEpoch === sessionEpoch;
       const plan = buildDeletionPlan(getState().categories, mode);
 
       // Single source of truth: the store derives all counts from
@@ -77,7 +65,7 @@ export function useIntune() {
       beginDeletionRun(plan, { dryRun });
 
       for (const { categoryId, objectIds } of plan) {
-        if (!sessionActive() || getState().shouldCancel) break;
+        if (getState().shouldCancel) break;
 
         const catState = getState().categories.find((c) => c.category.id === categoryId);
         if (!catState) continue;
@@ -85,16 +73,14 @@ export function useIntune() {
         const ids = new Set(objectIds);
         const objectsToDelete = catState.objects.filter((obj) => ids.has(obj.id));
         await deleteCategoryObjects(catState.category, objectsToDelete, {
-          onItemComplete: (entry) => {
-            if (sessionActive()) recordDeletionResult(entry);
-          },
-          shouldContinue: () => sessionActive() && !getState().shouldCancel,
+          onItemComplete: recordDeletionResult,
+          shouldContinue: () => !getState().shouldCancel,
           isPaused: () => getState().isPaused,
           dryRun,
         });
       }
 
-      if (sessionActive()) setDeletionPhase("complete");
+      setDeletionPhase("complete");
     },
     [beginDeletionRun, recordDeletionResult, setDeletionPhase]
   );
