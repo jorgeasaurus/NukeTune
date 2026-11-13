@@ -30,12 +30,17 @@ export function useIntune() {
       const sessionActive = () =>
         useNukeTuneStore.getState().sessionEpoch === sessionEpoch;
 
+      // The previous error is kept until the request settles: clearing it up
+      // front would drop a category being retried out of the preview's
+      // failure list (and its unknown-count warning) while it is in flight.
       setCategoryLoading(category.id, true);
-      setCategoryError(category.id, null);
 
       try {
         const objects = await fetchCategoryObjects(category);
-        if (sessionActive()) setCategoryObjects(category.id, objects);
+        if (sessionActive()) {
+          setCategoryObjects(category.id, objects);
+          setCategoryError(category.id, null);
+        }
       } catch (error) {
         const message = error instanceof Error ? error.message : "Failed to fetch objects";
         if (sessionActive()) setCategoryError(category.id, message);
