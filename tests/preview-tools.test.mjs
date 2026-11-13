@@ -18,6 +18,12 @@ import {
   matchesName,
 } from "../src/utils/quickFilters.js";
 import { selectOnly } from "../src/utils/objectSelection.js";
+import {
+  DEFAULT_PAGE_SIZE,
+  clampPage,
+  getPageCount,
+  paginate,
+} from "../src/utils/pagination.js";
 
 const deviceConfigs = {
   category: {
@@ -230,4 +236,30 @@ test("selectOnly selects exactly the matches and keeps protected objects unselec
     ],
   );
   assert.ok(selectOnly(objects, []).every((o) => o.selected === false));
+});
+
+// --- pagination -----------------------------------------------------------
+
+test("pagination slices 100 rows per page by default", () => {
+  const rows = Array.from({ length: 250 }, (_, i) => i);
+  assert.equal(DEFAULT_PAGE_SIZE, 100);
+  const first = paginate(rows, 0);
+  assert.equal(first.items.length, 100);
+  assert.equal(first.pageCount, 3);
+  assert.deepEqual([first.firstIndex, first.lastIndex, first.total], [1, 100, 250]);
+  const last = paginate(rows, 2);
+  assert.deepEqual(last.items, rows.slice(200));
+  assert.deepEqual([last.firstIndex, last.lastIndex], [201, 250]);
+});
+
+test("pagination clamps out-of-range pages so a shrinking filter never shows an empty page", () => {
+  assert.equal(clampPage(9, 150, 100), 1);
+  assert.equal(clampPage(-3, 150, 100), 0);
+  assert.equal(clampPage(Number.NaN, 150, 100), 0);
+  assert.equal(paginate([1, 2, 3], 5, 100).page, 0);
+  const empty = paginate([], 4, 100);
+  assert.deepEqual([empty.items.length, empty.page, empty.pageCount, empty.firstIndex, empty.lastIndex], [0, 0, 1, 0, 0]);
+  assert.equal(getPageCount(0, 100), 1);
+  assert.equal(getPageCount(100, 100), 1);
+  assert.equal(getPageCount(101, 100), 2);
 });
