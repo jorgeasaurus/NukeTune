@@ -9,6 +9,7 @@ import {
   initializeMsal,
   CustomNavigationClient,
 } from "~/lib/msal";
+import { TenantSessionSync } from "~/components/auth/TenantSessionSync";
 
 import "~/styles/globals.css";
 
@@ -65,6 +66,7 @@ const MyApp: AppType = ({ Component, pageProps }) => {
   return (
     <MsalProvider instance={msalInstance}>
       <div className={`${jetbrainsMono.variable} ${spaceGrotesk.variable} font-mono`}>
+        <TenantSessionSync />
         <Component {...pageProps} />
         <Analytics />
       </div>

@@ -11,12 +11,15 @@ import { setObjectSelection as updateObjectSelection } from "~/utils/objectSelec
 import type { ObjectSelectionTarget } from "~/utils/objectSelection";
 
 export type DeletionPhase = "idle" | "preview" | "confirming" | "deleting" | "complete";
+export type TenantStatus = "idle" | "loading" | "loaded" | "failed";
 
 interface NukeTuneState {
   // Auth state
   userDisplayName: string | null;
   tenantId: string | null;
   tenantName: string | null;
+  tenantDomain: string | null;
+  tenantStatus: TenantStatus;
 
   // Categories state
   categories: CategoryState[];
@@ -32,6 +35,12 @@ interface NukeTuneState {
 
   // Actions
   setUser: (name: string | null, tenantId: string | null, tenantName: string | null) => void;
+  setTenantInfo: (info: {
+    tenantId: string | null;
+    tenantName: string | null;
+    tenantDomain: string | null;
+    tenantStatus: TenantStatus;
+  }) => void;
   initializeCategories: () => void;
   toggleCategory: (categoryId: string) => void;
   selectAllCategories: () => void;
@@ -78,6 +87,8 @@ export const useNukeTuneStore = create<NukeTuneState>()(
       userDisplayName: null,
       tenantId: null,
       tenantName: null,
+      tenantDomain: null,
+      tenantStatus: "idle",
       categories: initialCategories,
       previewOpen: false,
       deletionPhase: "idle",
@@ -88,6 +99,8 @@ export const useNukeTuneStore = create<NukeTuneState>()(
       // Actions
       setUser: (name, tenantId, tenantName) =>
         set({ userDisplayName: name, tenantId, tenantName }),
+
+      setTenantInfo: (info) => set(info),
 
       initializeCategories: () =>
         set({
@@ -231,6 +244,23 @@ export const useNukeTuneStore = create<NukeTuneState>()(
     { name: "NukeTuneStore" }
   )
 );
+
+/**
+ * Discard everything scoped to the signed-in tenant: selections, fetched
+ * objects, deletion state and tenant identity. Used on sign-out and whenever
+ * the active account changes so tenant A's data never shows under tenant B.
+ */
+export function resetTenantSession() {
+  const state = useNukeTuneStore.getState();
+  state.reset();
+  state.setUser(null, null, null);
+  state.setTenantInfo({
+    tenantId: null,
+    tenantName: null,
+    tenantDomain: null,
+    tenantStatus: "idle",
+  });
+}
 
 // Selectors - use useShallow for array/object returns to prevent infinite re-renders
 export const useSelectedCategories = () =>
