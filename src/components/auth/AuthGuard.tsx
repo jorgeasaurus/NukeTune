@@ -7,6 +7,25 @@ interface AuthGuardProps {
   fallback?: ReactNode;
 }
 
+function StatusScreen({ message }: { message: string }) {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-[var(--void-black)]">
+      <div className="console-panel rounded-xl p-8 text-center" role="status">
+        <div className="relative mx-auto mb-4 h-10 w-10">
+          <div className="absolute inset-0 animate-spin rounded-full border-2 border-[var(--console-border)] border-t-[var(--danger-red)]" />
+          <div
+            className="absolute inset-2 animate-spin rounded-full border-2 border-[var(--console-border)] border-t-[var(--nuke-orange)]"
+            style={{ animationDirection: "reverse", animationDuration: "1.5s" }}
+          />
+        </div>
+        <p className="text-sm text-[var(--text-dim)]">
+          <span className="text-[var(--terminal-green)]">$</span> {message}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 export function AuthGuard({ children, fallback }: AuthGuardProps) {
   const isAuthenticated = useIsAuthenticated();
   const { inProgress } = useMsal();
@@ -21,37 +40,11 @@ export function AuthGuard({ children, fallback }: AuthGuardProps) {
   }, [isAuthenticated, inProgress, router]);
 
   if (inProgress !== "none") {
-    return (
-      fallback ?? (
-        <div className="flex min-h-screen items-center justify-center bg-gray-950 bg-mesh">
-          <div className="glass rounded-2xl p-8 text-center">
-            <div className="relative mx-auto mb-4 h-12 w-12">
-              <div className="absolute inset-0 animate-spin rounded-full border-4 border-transparent border-t-blue-500" />
-              <div
-                className="absolute inset-2 animate-spin rounded-full border-4 border-transparent border-t-blue-400"
-                style={{ animationDirection: "reverse", animationDuration: "1.5s" }}
-              />
-            </div>
-            <p className="text-gray-400">Authenticating...</p>
-          </div>
-        </div>
-      )
-    );
+    return fallback ?? <StatusScreen message="Authenticating..." />;
   }
 
   if (!isAuthenticated) {
-    return (
-      fallback ?? (
-        <div className="flex min-h-screen items-center justify-center bg-gray-950 bg-mesh">
-          <div className="glass rounded-2xl p-8 text-center">
-            <div className="relative mx-auto mb-4 h-12 w-12">
-              <div className="absolute inset-0 animate-spin rounded-full border-4 border-transparent border-t-gray-500" />
-            </div>
-            <p className="text-gray-400">Redirecting to login...</p>
-          </div>
-        </div>
-      )
-    );
+    return fallback ?? <StatusScreen message="Redirecting to login..." />;
   }
 
   return <>{children}</>;
