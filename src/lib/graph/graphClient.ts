@@ -5,7 +5,10 @@ import {
   type AuthenticationResult,
 } from "@azure/msal-browser";
 import { msalInstance, loginRequest } from "../msal";
-import { COMMERCIAL_GRAPH_BASE_URL } from "../msal/commercialCloud";
+import {
+  COMMERCIAL_AUTHORITY_ORIGIN,
+  COMMERCIAL_GRAPH_BASE_URL,
+} from "../msal/commercialCloud";
 import type {
   GraphListResponse,
   IntuneObject,
@@ -39,6 +42,18 @@ async function getAccessToken(): Promise<string> {
 // of them they must share one popup instead of each opening their own.
 let interactiveRequest: Promise<AuthenticationResult> | null = null;
 
+const TENANT_ID_PATTERN = /^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i;
+
+// Interactive requests take their tenant from the authority, not from the
+// account. Against /common a session in a resource tenant would come back as
+// the user's home tenant and be rejected below, so target the account's own
+// tenant when it is a well-formed tenant ID.
+function tenantAuthority(account: AccountInfo): string | undefined {
+  return TENANT_ID_PATTERN.test(account.tenantId)
+    ? `${COMMERCIAL_AUTHORITY_ORIGIN}/${account.tenantId}`
+    : undefined;
+}
+
 // The popup is locked to the active account, and its result is checked
 // against it: a token for another account or tenant must never be used while
 // the UI shows, and asks the user to confirm, the active one.
@@ -46,7 +61,11 @@ function acquireTokenInteractively(
   account: AccountInfo
 ): Promise<AuthenticationResult> {
   interactiveRequest ??= msalInstance
-    .acquireTokenPopup({ ...loginRequest, account })
+    .acquireTokenPopup({
+      ...loginRequest,
+      account,
+      authority: tenantAuthority(account),
+    })
     .then((response) => {
       const received = response.account;
       if (
