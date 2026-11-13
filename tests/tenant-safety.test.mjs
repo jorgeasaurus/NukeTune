@@ -179,3 +179,23 @@ test("guest accounts never fall back to their home UPN domain", async () => {
     `Tenant ${RESOURCE}`,
   );
 });
+
+test("the same user in a different resource tenant is a different session", async () => {
+  const { getTenantSessionKey } = await import("../src/lib/graph/tenantIdentity.js");
+  const HOME = "11111111-1111-1111-1111-111111111111";
+  const RESOURCE = "22222222-2222-2222-2222-222222222222";
+  const inHome = getTenantSessionKey({ homeAccountId: `oid.${HOME}`, tenantId: HOME });
+  const inResource = getTenantSessionKey({ homeAccountId: `oid.${HOME}`, tenantId: RESOURCE });
+
+  assert.notEqual(inHome, inResource);
+  assert.equal(shouldResetForAccountChange(inHome, inResource), true);
+  assert.equal(
+    shouldResetForAccountChange(
+      inHome,
+      getTenantSessionKey({ homeAccountId: `OID.${HOME}`, tenantId: HOME.toUpperCase() }),
+    ),
+    false,
+  );
+  assert.equal(getTenantSessionKey(null), null);
+  assert.equal(getTenantSessionKey({ tenantId: HOME }), null);
+});
