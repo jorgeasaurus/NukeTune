@@ -6,11 +6,16 @@ import { PreviewModal } from "~/components/preview";
 import { DeletionProgress } from "~/components/deletion";
 import { useNukeTuneStore, useSelectedCategories } from "~/store";
 import { GradientBackground } from "~/components/ui/GradientBackground";
+import { useTenantDisplay } from "~/hooks/useTenantIdentity";
+import { useBeforeUnloadGuard } from "~/hooks/useBeforeUnloadGuard";
 
 export default function Dashboard() {
   const openPreview = useNukeTuneStore((state) => state.openPreview);
   const deletionPhase = useNukeTuneStore((state) => state.deletionPhase);
   const selectedCategories = useSelectedCategories();
+  const tenant = useTenantDisplay();
+
+  useBeforeUnloadGuard(deletionPhase === "deleting" || deletionPhase === "confirming");
 
   const hasSelection = selectedCategories.length > 0;
 
@@ -40,6 +45,37 @@ export default function Dashboard() {
               <p className="mt-2 text-sm text-[var(--text-dim)]">
                 Select target categories, preview affected objects, execute deletion protocol
               </p>
+            </div>
+
+            {/* Target Tenant */}
+            <div className="console-panel mb-4 flex flex-col gap-1 p-5 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0">
+                <div className="text-xs font-medium uppercase tracking-wider text-[var(--text-dim)]">
+                  Target Tenant
+                </div>
+                <div
+                  className="mt-1 truncate font-display text-xl font-bold text-[var(--warning-amber)]"
+                  title={tenant.tenantId ? `Tenant ID: ${tenant.tenantId}` : undefined}
+                >
+                  {tenant.status === "loading" && !tenant.verified
+                    ? "Resolving tenant..."
+                    : tenant.label}
+                </div>
+                {tenant.status === "failed" && (
+                  <p className="mt-1 text-xs text-[var(--warning-amber)]/80">
+                    {tenant.domain
+                      ? "Could not read the organization name; showing the signed-in account's domain."
+                      : "Could not read the organization name; showing the tenant ID only."}{" "}
+                    Verify this is the tenant you intend to modify.
+                  </p>
+                )}
+              </div>
+              {tenant.tenantId && (
+                <div className="font-mono text-[11px] text-[var(--text-muted)] sm:text-right">
+                  Tenant ID
+                  <div className="break-all text-[var(--text-dim)]">{tenant.tenantId}</div>
+                </div>
+              )}
             </div>
 
             {/* Warning Banner */}
