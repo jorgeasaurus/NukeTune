@@ -17,7 +17,9 @@ export const env = createEnv({
    */
   client: {
     NEXT_PUBLIC_MSAL_CLIENT_ID: z.string().min(1),
-    NEXT_PUBLIC_MSAL_REDIRECT_URI: z.string().url(),
+    // Optional: in the browser the page's own origin is used. This is only a
+    // fallback for server-side rendering.
+    NEXT_PUBLIC_MSAL_REDIRECT_URI: z.string().url().optional(),
   },
 
   /**

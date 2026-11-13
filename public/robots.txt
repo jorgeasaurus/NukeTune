@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Allow: /setup
+Disallow: /dashboard
+
+Sitemap: https://nuketune.com/sitemap.xml
