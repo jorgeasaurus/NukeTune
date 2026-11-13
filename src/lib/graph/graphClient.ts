@@ -1,4 +1,8 @@
 import { Client } from "@microsoft/microsoft-graph-client";
+import {
+  InteractionRequiredAuthError,
+  type AuthenticationResult,
+} from "@azure/msal-browser";
 import { msalInstance, loginRequest } from "../msal";
 import { COMMERCIAL_GRAPH_BASE_URL } from "../msal/commercialCloud";
 import type {
@@ -19,10 +23,28 @@ async function getAccessToken(): Promise<string> {
       account,
     });
     return response.accessToken;
-  } catch {
-    const response = await msalInstance.acquireTokenPopup(loginRequest);
+  } catch (error) {
+    // Only an interaction-required failure can be fixed by a popup; anything
+    // else (network, config) should surface as-is.
+    if (!(error instanceof InteractionRequiredAuthError)) {
+      throw error;
+    }
+    const response = await acquireTokenInteractively();
     return response.accessToken;
   }
+}
+
+// Several Graph requests run concurrently; when the silent call fails for all
+// of them they must share one popup instead of each opening their own.
+let interactiveRequest: Promise<AuthenticationResult> | null = null;
+
+function acquireTokenInteractively(): Promise<AuthenticationResult> {
+  interactiveRequest ??= msalInstance
+    .acquireTokenPopup(loginRequest)
+    .finally(() => {
+      interactiveRequest = null;
+    });
+  return interactiveRequest;
 }
 
 export async function getGraphClient(): Promise<Client> {
@@ -95,11 +117,11 @@ export function parseGraphError(error: unknown): GraphError {
   if (error && typeof error === "object") {
     const err = error as Record<string, unknown>;
 
-    if (err.statusCode && err.code) {
+    if (typeof err.statusCode === "number" && typeof err.code === "string") {
       return {
-        statusCode: err.statusCode as number,
-        code: err.code as string,
-        message: (err.message as string) ?? "Unknown error",
+        statusCode: err.statusCode,
+        code: err.code,
+        message: typeof err.message === "string" && err.message ? err.message : "Unknown error",
         requestId: err.requestId as string | undefined,
       };
     }
@@ -122,14 +144,16 @@ export function parseGraphError(error: unknown): GraphError {
     }
   }
 
+  const statusCode =
+    error && typeof error === "object" &&
+    typeof (error as { statusCode?: unknown }).statusCode === "number"
+      ? (error as { statusCode: number }).statusCode
+      : 500;
+
   return {
-    statusCode: 500,
+    statusCode,
     code: "UnknownError",
     message:
       error instanceof Error ? error.message : "An unknown error occurred",
   };
-}
-
-export function isRetryableError(error: GraphError): boolean {
-  return error.statusCode >= 500 || error.statusCode === 429;
 }
