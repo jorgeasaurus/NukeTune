@@ -1,14 +1,14 @@
-import Head from "next/head";
 import Link from "next/link";
 import { GradientBackground } from "~/components/ui/GradientBackground";
 import { Navigation } from "~/components/ui/Navigation";
+import { PageTitle } from "~/components/ui/PageMeta";
+import { INTUNE_CATEGORIES } from "~/lib/intune/categories";
+import { loginRequest } from "~/lib/msal/msalConfig";
 
 export default function Setup() {
   return (
     <>
-      <Head>
-        <title>Setup Guide - NukeTune</title>
-      </Head>
+      <PageTitle route="/setup" />
 
       <div className="min-h-screen bg-[var(--void-black)]">
         <GradientBackground />
@@ -16,7 +16,7 @@ export default function Setup() {
         <div className="relative z-10">
           <Navigation />
 
-          <main className="mx-auto max-w-4xl px-4 pt-32 pb-12">
+          <main className="mx-auto max-w-4xl px-4 pt-44 pb-12 md:pt-32">
             <div className="mb-8">
               <span className="text-xs font-medium tracking-wider text-[var(--danger-red)] uppercase">
                 {"//"} DOCUMENTATION
@@ -75,19 +75,11 @@ export default function Setup() {
                 </div>
                 <p className="mb-4 text-sm text-[var(--text-dim)]">
                   On the dashboard, select the Intune object categories you want
-                  to delete:
+                  to delete. NukeTune covers {INTUNE_CATEGORIES.length}{" "}
+                  categories:
                 </p>
                 <div className="grid gap-2 sm:grid-cols-2">
-                  {[
-                    "Managed Devices",
-                    "Applications",
-                    "Configuration Profiles",
-                    "Compliance Policies",
-                    "Scripts",
-                    "Groups",
-                    "Filters",
-                    "Autopilot Profiles",
-                  ].map((item) => (
+                  {INTUNE_CATEGORIES.map(({ name: item }) => (
                     <div
                       key={item}
                       className="flex items-center gap-2 rounded-lg border border-[var(--console-border)] bg-[var(--console-panel)] p-3 text-sm text-white"
@@ -144,7 +136,7 @@ export default function Setup() {
                   The signed-in user must have one of the following Intune
                   administrator roles:
                 </p>
-                <div className="mb-6 flex gap-4">
+                <div className="mb-6 flex flex-wrap gap-4">
                   <div className="flex items-center gap-2 rounded-lg border border-[var(--terminal-green)]/30 bg-[var(--terminal-green)]/5 px-4 py-2 text-sm text-[var(--terminal-green)]">
                     <span className="status-dot status-dot-active" />
                     Intune Administrator
@@ -162,15 +154,7 @@ export default function Setup() {
                     </span>
                   </div>
                   <div className="divide-y divide-[var(--console-border)]">
-                    {[
-                      "DeviceManagementManagedDevices.ReadWrite.All",
-                      "DeviceManagementServiceConfig.ReadWrite.All",
-                      "DeviceManagementConfiguration.ReadWrite.All",
-                      "DeviceManagementApps.ReadWrite.All",
-                      "Policy.ReadWrite.ConditionalAccess",
-                      "DeviceManagementRBAC.ReadWrite.All",
-                      "Group.ReadWrite.All",
-                    ].map((permission) => (
+                    {loginRequest.scopes.map((permission) => (
                       <div
                         key={permission}
                         className="px-4 py-3 font-mono text-xs text-cyan-400 transition-colors hover:bg-white/[0.02]"
@@ -190,6 +174,7 @@ export default function Setup() {
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
+                    aria-hidden="true"
                   >
                     <path
                       strokeLinecap="round"
@@ -233,6 +218,7 @@ export default function Setup() {
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
+                    aria-hidden="true"
                   >
                     <path
                       strokeLinecap="round"
@@ -261,6 +247,7 @@ export default function Setup() {
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
+                    aria-hidden="true"
                   >
                     <path
                       strokeLinecap="round"

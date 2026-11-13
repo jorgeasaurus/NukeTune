@@ -1,4 +1,3 @@
-import Head from "next/head";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -7,14 +6,27 @@ import { useState } from "react";
 import { SignInButton, CloudEnvironmentSelector } from "~/components/auth";
 import { GradientBackground } from "~/components/ui/GradientBackground";
 import { Navigation } from "~/components/ui/Navigation";
+import { PageTitle } from "~/components/ui/PageMeta";
+import {
+  SignInErrorAlert,
+  getSignInErrorMessage,
+} from "~/components/ui/SignInErrorAlert";
 import { signIn } from "~/lib/auth/authUtils";
+import { INTUNE_CATEGORIES } from "~/lib/intune/categories";
+
+type SignInOrigin = "hero" | "footer";
 
 export default function Home() {
   const isAuthenticated = useIsAuthenticated();
   const router = useRouter();
   const [showCloudSelector, setShowCloudSelector] = useState(false);
+  // Which CTA started sign-in, so a failure is shown next to that button.
+  const [signInOrigin, setSignInOrigin] = useState<SignInOrigin>("hero");
+  const [signInError, setSignInError] = useState<string | null>(null);
 
-  const handleSignInClick = () => {
+  const handleSignInClick = (origin: SignInOrigin) => {
+    setSignInOrigin(origin);
+    setSignInError(null);
     setShowCloudSelector(true);
   };
 
@@ -25,18 +37,22 @@ export default function Home() {
       void router.push("/dashboard");
     } catch (error) {
       console.error("Sign in error:", error);
+      setSignInError(getSignInErrorMessage(error));
     }
   };
 
+  const renderSignInError = (origin: SignInOrigin) =>
+    signInError && signInOrigin === origin ? (
+      <SignInErrorAlert
+        message={signInError}
+        onDismiss={() => setSignInError(null)}
+        className="mx-auto mt-4 max-w-lg"
+      />
+    ) : null;
+
   return (
     <>
-      <Head>
-        <title>NukeTune - Intune Environment Reset Tool</title>
-        <meta
-          name="description"
-          content="Reset Microsoft Intune tenants in the Global Commercial cloud"
-        />
-      </Head>
+      <PageTitle route="/" />
 
       <div className="relative min-h-screen bg-[var(--void-black)]">
         <GradientBackground />
@@ -45,7 +61,7 @@ export default function Home() {
           <Navigation />
 
           {/* Hero Section */}
-          <section className="container mx-auto px-4 pb-16 pt-32">
+          <section className="container mx-auto px-4 pb-16 pt-44 md:pt-32">
             <div className="mx-auto max-w-5xl space-y-8 text-center">
               {/* System Status */}
               <div className="inline-flex items-center gap-2 rounded-full border border-[var(--console-border)] bg-[var(--console-panel)] px-4 py-2">
@@ -80,7 +96,7 @@ export default function Home() {
                   </Link>
                 ) : (
                   <SignInButton
-                    onClick={handleSignInClick}
+                    onClick={() => handleSignInClick("hero")}
                     className="btn-terminal inline-flex items-center justify-center gap-2 rounded-lg px-8 py-4 text-base"
                   />
                 )}
@@ -93,6 +109,7 @@ export default function Home() {
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
+                    aria-hidden="true"
                   >
                     <path
                       strokeLinecap="round"
@@ -104,6 +121,7 @@ export default function Home() {
                   Documentation
                 </Link>
               </div>
+              {renderSignInError("hero")}
             </div>
           </section>
 
@@ -124,6 +142,7 @@ export default function Home() {
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
+                      aria-hidden="true"
                     >
                       <path
                         strokeLinecap="round"
@@ -151,7 +170,7 @@ export default function Home() {
           {/* Features Section */}
           <section
             id="features"
-            className="container mx-auto scroll-mt-16 px-4 py-16"
+            className="container mx-auto scroll-mt-36 px-4 py-16"
           >
             <div className="mx-auto max-w-6xl">
               <div className="mb-12">
@@ -172,6 +191,7 @@ export default function Home() {
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
+                      aria-hidden="true"
                     >
                       <path
                         strokeLinecap="round"
@@ -198,6 +218,7 @@ export default function Home() {
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
+                      aria-hidden="true"
                     >
                       <path
                         strokeLinecap="round"
@@ -224,6 +245,7 @@ export default function Home() {
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
+                      aria-hidden="true"
                     >
                       <path
                         strokeLinecap="round"
@@ -250,6 +272,7 @@ export default function Home() {
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
+                      aria-hidden="true"
                     >
                       <path
                         strokeLinecap="round"
@@ -276,6 +299,7 @@ export default function Home() {
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
+                      aria-hidden="true"
                     >
                       <path
                         strokeLinecap="round"
@@ -302,6 +326,7 @@ export default function Home() {
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
+                      aria-hidden="true"
                     >
                       <path
                         strokeLinecap="round"
@@ -326,7 +351,7 @@ export default function Home() {
           {/* How It Works Section */}
           <section
             id="how-it-works"
-            className="container mx-auto scroll-mt-16 px-4 py-16"
+            className="container mx-auto scroll-mt-36 px-4 py-16"
           >
             <div className="mx-auto max-w-6xl">
               <div className="mb-12">
@@ -356,6 +381,7 @@ export default function Home() {
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
+                        aria-hidden="true"
                       >
                         <path
                           strokeLinecap="round"
@@ -392,6 +418,7 @@ export default function Home() {
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
+                        aria-hidden="true"
                       >
                         <path
                           strokeLinecap="round"
@@ -428,6 +455,7 @@ export default function Home() {
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
+                        aria-hidden="true"
                       >
                         <path
                           strokeLinecap="round"
@@ -506,6 +534,7 @@ export default function Home() {
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
+                      aria-hidden="true"
                     >
                       <path
                         strokeLinecap="round"
@@ -520,13 +549,23 @@ export default function Home() {
                   </div>
                 ))}
               </div>
+              <p className="mt-6 text-sm text-[var(--text-dim)]">
+                {INTUNE_CATEGORIES.length} categories in total, including app
+                protection, enrollment and RBAC objects.{" "}
+                <Link
+                  href="/setup"
+                  className="text-white underline underline-offset-4 hover:text-[var(--danger-red)]"
+                >
+                  See the full list
+                </Link>
+              </p>
             </div>
           </section>
 
           {/* FAQ Section */}
           <section
             id="faq"
-            className="container mx-auto scroll-mt-16 px-4 py-16"
+            className="container mx-auto scroll-mt-36 px-4 py-16"
           >
             <div className="mx-auto max-w-4xl">
               <div className="mb-12">
@@ -554,7 +593,7 @@ export default function Home() {
                   },
                   {
                     q: "What permissions do I need?",
-                    a: "You need to be a Global Administrator or Intune Administrator with the ability to consent to Microsoft Graph API permissions. The required scopes include DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, and Group.ReadWrite.All.",
+                    a: "You need to be a Global Administrator or Intune Administrator with the ability to consent to Microsoft Graph API permissions. NukeTune requests delegated scopes such as DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, DeviceManagementApps.ReadWrite.All, Policy.ReadWrite.ConditionalAccess and Group.ReadWrite.All; the setup guide lists all ten.",
                   },
                   {
                     q: "Can I undo deletions?",
@@ -588,6 +627,7 @@ export default function Home() {
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
+                        aria-hidden="true"
                       >
                         <path
                           strokeLinecap="round"
@@ -637,10 +677,11 @@ export default function Home() {
                   </Link>
                 ) : (
                   <SignInButton
-                    onClick={handleSignInClick}
+                    onClick={() => handleSignInClick("footer")}
                     className="btn-terminal inline-flex items-center gap-2 rounded-lg px-8 py-4 text-base"
                   />
                 )}
+                {renderSignInError("footer")}
               </div>
             </div>
           </section>
@@ -661,7 +702,7 @@ export default function Home() {
                 <div className="flex items-center gap-6 text-xs">
                   <Link
                     href="/setup"
-                    className="text-[var(--text-muted)] transition-colors hover:text-white"
+                    className="inline-block py-2 text-[var(--text-muted)] transition-colors hover:text-white"
                   >
                     Documentation
                   </Link>
@@ -669,7 +710,7 @@ export default function Home() {
                     href="https://learn.microsoft.com/en-us/graph/api/overview"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-[var(--text-muted)] transition-colors hover:text-white"
+                    className="inline-block py-2 text-[var(--text-muted)] transition-colors hover:text-white"
                   >
                     Microsoft Graph
                   </a>
@@ -677,13 +718,14 @@ export default function Home() {
                     href="https://github.com/jorgeasaurus"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-[var(--text-muted)] transition-colors hover:text-white"
+                    className="-m-2 inline-flex p-2 text-[var(--text-muted)] transition-colors hover:text-white"
                     aria-label="GitHub"
                   >
                     <svg
                       className="h-5 w-5"
                       fill="currentColor"
                       viewBox="0 0 24 24"
+                      aria-hidden="true"
                     >
                       <path
                         fillRule="evenodd"
@@ -696,13 +738,14 @@ export default function Home() {
                     href="https://linkedin.com/in/jorgeasaurus"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-[var(--text-muted)] transition-colors hover:text-white"
+                    className="-m-2 inline-flex p-2 text-[var(--text-muted)] transition-colors hover:text-white"
                     aria-label="LinkedIn"
                   >
                     <svg
                       className="h-5 w-5"
                       fill="currentColor"
                       viewBox="0 0 24 24"
+                      aria-hidden="true"
                     >
                       <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
                     </svg>
