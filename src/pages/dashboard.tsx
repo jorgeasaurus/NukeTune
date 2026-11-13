@@ -7,12 +7,15 @@ import { DeletionProgress } from "~/components/deletion";
 import { useNukeTuneStore, useSelectedCategories } from "~/store";
 import { GradientBackground } from "~/components/ui/GradientBackground";
 import { useTenantDisplay } from "~/hooks/useTenantIdentity";
+import { useBeforeUnloadGuard } from "~/hooks/useBeforeUnloadGuard";
 
 export default function Dashboard() {
   const openPreview = useNukeTuneStore((state) => state.openPreview);
   const deletionPhase = useNukeTuneStore((state) => state.deletionPhase);
   const selectedCategories = useSelectedCategories();
   const tenant = useTenantDisplay();
+
+  useBeforeUnloadGuard(deletionPhase === "deleting" || deletionPhase === "confirming");
 
   const hasSelection = selectedCategories.length > 0;
 
