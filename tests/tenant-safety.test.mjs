@@ -143,3 +143,15 @@ test("store reset fires on account switch and sign-out, not on first sign-in", (
   assert.equal(shouldResetForAccountChange("a", null), true);
   assert.equal(shouldResetForAccountChange(null, "b"), true);
 });
+
+test("modal focus trap wraps Tab at the edges and pulls stray focus inside", async () => {
+  const { getWrappedFocusIndex } = await import("../src/hooks/focusTrap.js");
+  assert.equal(getWrappedFocusIndex(2, 3, false), 0);
+  assert.equal(getWrappedFocusIndex(0, 3, true), 2);
+  assert.equal(getWrappedFocusIndex(1, 3, false), null);
+  assert.equal(getWrappedFocusIndex(1, 3, true), null);
+  assert.equal(getWrappedFocusIndex(-1, 3, false), 0);
+  assert.equal(getWrappedFocusIndex(-1, 3, true), 2);
+  assert.equal(getWrappedFocusIndex(0, 1, false), 0);
+  assert.equal(getWrappedFocusIndex(0, 0, false), null);
+});
