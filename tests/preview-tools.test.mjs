@@ -9,6 +9,15 @@ import {
   inventoryToJson,
   stripAppFields,
 } from "../src/utils/inventory.js";
+import {
+  EMPTY_QUICK_FILTERS,
+  HYDRATION_KIT_MARKERS,
+  applyQuickFilters,
+  hasActiveQuickFilter,
+  isHydrationKitObject,
+  matchesName,
+} from "../src/utils/quickFilters.js";
+import { selectOnly } from "../src/utils/objectSelection.js";
 
 const deviceConfigs = {
   category: {
@@ -150,4 +159,75 @@ test("export file names include tenant domain and timestamp", () => {
     buildExportFilename("inventory", { id: null, domain: null }, exportedAt, "csv"),
     "nuketune-inventory-unknown-tenant-2026-03-04T05-06-07-890Z.csv",
   );
+});
+
+// --- quick filters --------------------------------------------------------
+
+test("Hydration Kit markers match what the kit writes, in description or notes", () => {
+  assert.deepEqual([...HYDRATION_KIT_MARKERS], [
+    "Imported by Intune Hydration Kit",
+    "Imported by Intune-Hydration-Kit",
+  ]);
+  // New-HydrationDescription output shapes.
+  assert.ok(isHydrationKitObject({ id: "1", description: "Imported by Intune Hydration Kit" }));
+  assert.ok(isHydrationKitObject({ id: "2", description: "My policy - Imported by Intune Hydration Kit" }));
+  assert.ok(isHydrationKitObject({ id: "3", description: "My profile Imported by Intune Hydration Kit" }));
+  // Mobile apps carry it in notes; legacy hyphenated spelling; case-insensitive like -like.
+  assert.ok(isHydrationKitObject({ id: "4", notes: "imported by intune-hydration-kit" }));
+  assert.ok(!isHydrationKitObject({ id: "5", description: "Hydration Kit" }));
+  assert.ok(!isHydrationKitObject({ id: "6", description: null, notes: 42 }));
+  assert.ok(!isHydrationKitObject({ id: "7" }));
+});
+
+test("name matcher supports prefix and contains, case-insensitively", () => {
+  assert.ok(matchesName("Test-Policy", "test-", "prefix"));
+  assert.ok(!matchesName("My Test-Policy", "test-", "prefix"));
+  assert.ok(matchesName("My Test-Policy", "TEST-", "contains"));
+  assert.ok(matchesName("anything", "   ", "prefix"));
+  assert.ok(!hasActiveQuickFilter({ ...EMPTY_QUICK_FILTERS, nameQuery: "  " }));
+  assert.ok(hasActiveQuickFilter({ ...EMPTY_QUICK_FILTERS, hydrationOnly: true }));
+});
+
+test("quick filters combine name and Hydration Kit preset", () => {
+  const objects = [
+    { id: "1", displayName: "HK - Baseline", description: "x - Imported by Intune Hydration Kit" },
+    { id: "2", displayName: "HK - Manual", description: "made by hand" },
+    { id: "3", displayName: "Other", notes: "Imported by Intune Hydration Kit" },
+  ];
+  const name = (obj) => obj.displayName;
+  assert.deepEqual(
+    applyQuickFilters(objects, EMPTY_QUICK_FILTERS, name).map((o) => o.id),
+    ["1", "2", "3"],
+  );
+  assert.deepEqual(
+    applyQuickFilters(objects, { ...EMPTY_QUICK_FILTERS, hydrationOnly: true }, name).map((o) => o.id),
+    ["1", "3"],
+  );
+  assert.deepEqual(
+    applyQuickFilters(
+      objects,
+      { nameQuery: "hk", nameMode: "prefix", hydrationOnly: true },
+      name,
+    ).map((o) => o.id),
+    ["1"],
+  );
+});
+
+test("selectOnly selects exactly the matches and keeps protected objects unselected", () => {
+  const objects = [
+    { id: "a", selected: false },
+    { id: "b", selected: true },
+    { id: "c", selected: true },
+    { id: "p", selected: false, _protectedReason: "Built-in" },
+  ];
+  assert.deepEqual(
+    selectOnly(objects, ["a", "p"]).map((o) => [o.id, o.selected]),
+    [
+      ["a", true],
+      ["b", false],
+      ["c", false],
+      ["p", false],
+    ],
+  );
+  assert.ok(selectOnly(objects, []).every((o) => o.selected === false));
 });

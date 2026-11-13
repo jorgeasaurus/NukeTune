@@ -11,6 +11,7 @@ import {
   setObjectSelection as updateObjectSelection,
   toggleObjectSelection as toggleSelection,
   selectAllSelectable,
+  selectOnly,
 } from "~/utils/objectSelection";
 import type { ObjectSelectionTarget } from "~/utils/objectSelection";
 import {
@@ -60,6 +61,11 @@ interface NukeTuneState {
   setCategoryObjects: (categoryId: string, objects: IntuneObject[]) => void;
   toggleObjectSelection: (categoryId: string, objectId: string) => void;
   setObjectSelection: (targets: ObjectSelectionTarget[], selected: boolean) => void;
+  /**
+   * Select exactly `targets` within the given categories and deselect every
+   * other object in them.
+   */
+  selectOnlyObjects: (categoryIds: string[], targets: ObjectSelectionTarget[]) => void;
   setCategoryLoading: (categoryId: string, loading: boolean) => void;
   setCategoryError: (categoryId: string, error: string | null) => void;
   beginDeletionRun: (plan: DeletionPlanEntry[], options?: { dryRun?: boolean }) => void;
@@ -194,6 +200,28 @@ export const useNukeTuneStore = create<NukeTuneState>()(
                   }
                 : cat;
             }),
+          };
+        }),
+
+      selectOnlyObjects: (categoryIds, targets) =>
+        set((state) => {
+          const scope = new Set(categoryIds);
+          const objectIdsByCategory = new Map<string, string[]>();
+          for (const target of targets) {
+            const objectIds = objectIdsByCategory.get(target.categoryId) ?? [];
+            objectIds.push(target.objectId);
+            objectIdsByCategory.set(target.categoryId, objectIds);
+          }
+
+          return {
+            categories: state.categories.map((cat) =>
+              scope.has(cat.category.id)
+                ? {
+                    ...cat,
+                    objects: selectOnly(cat.objects, objectIdsByCategory.get(cat.category.id) ?? []),
+                  }
+                : cat
+            ),
           };
         }),
 

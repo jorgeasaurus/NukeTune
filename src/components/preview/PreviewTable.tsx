@@ -7,6 +7,14 @@ import {
   isSelectableObject,
 } from "~/utils/objectSelection";
 import { getObjectDisplayName, getObjectType } from "~/utils/objectDisplay";
+import {
+  applyQuickFilters,
+  EMPTY_QUICK_FILTERS,
+  hasActiveQuickFilter,
+  isHydrationKitObject,
+  type NameMatchMode,
+  type QuickFilters,
+} from "~/utils/quickFilters";
 
 interface PreviewTableProps {
   categories: CategoryState[];
@@ -59,6 +67,8 @@ export function PreviewTable({ categories }: PreviewTableProps) {
 
   const toggleObjectSelection = useNukeTuneStore((s) => s.toggleObjectSelection);
   const setObjectSelection = useNukeTuneStore((s) => s.setObjectSelection);
+  const selectOnlyObjects = useNukeTuneStore((s) => s.selectOnlyObjects);
+  const [quickFilters, setQuickFilters] = useState<QuickFilters>(EMPTY_QUICK_FILTERS);
 
   const allObjects = useMemo(() => {
     return categories.flatMap((cat) =>
@@ -72,12 +82,21 @@ export function PreviewTable({ categories }: PreviewTableProps) {
   }, [categories]);
 
   const filteredObjects = useMemo(() => {
-    return filterVisibleObjects(
-      allObjects,
-      searchQuery,
-      selectedCategoryFilter,
+    return applyQuickFilters(
+      filterVisibleObjects(allObjects, searchQuery, selectedCategoryFilter),
+      quickFilters,
+      (obj) => getObjectDisplayName(obj, obj.categoryId),
     );
-  }, [allObjects, searchQuery, selectedCategoryFilter]);
+  }, [allObjects, searchQuery, selectedCategoryFilter, quickFilters]);
+
+  const hydrationKitCount = useMemo(
+    () => allObjects.filter(isHydrationKitObject).length,
+    [allObjects],
+  );
+  const anyFilterActive =
+    searchQuery.trim().length > 0 ||
+    selectedCategoryFilter !== "all" ||
+    hasActiveQuickFilter(quickFilters);
 
   // Protected objects are shown as locked rows and never count as selected.
   const selectedCount = allObjects.filter((obj) => obj.selected && isSelectableObject(obj)).length;
@@ -89,6 +108,15 @@ export function PreviewTable({ categories }: PreviewTableProps) {
 
   const setVisibleObjectSelection = (selected: boolean) => {
     setObjectSelection(getObjectSelectionTargets(filteredSelectable), selected);
+  };
+
+  // Matching selectable objects become the whole deletion set; everything
+  // else in the previewed categories is deselected.
+  const selectMatchingOnly = () => {
+    selectOnlyObjects(
+      categories.map((cat) => cat.category.id),
+      getObjectSelectionTargets(filteredSelectable),
+    );
   };
 
   const dangerColors = {
@@ -121,6 +149,52 @@ export function PreviewTable({ categories }: PreviewTableProps) {
             </option>
           ))}
         </select>
+      </div>
+
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="flex flex-1 gap-2">
+          <select
+            value={quickFilters.nameMode}
+            onChange={(e) =>
+              setQuickFilters((f) => ({ ...f, nameMode: e.target.value as NameMatchMode }))
+            }
+            className="input-terminal w-auto text-xs"
+            aria-label="Name match mode"
+          >
+            <option value="prefix">Name starts with</option>
+            <option value="contains">Name contains</option>
+          </select>
+          <input
+            type="text"
+            placeholder="e.g. Test-"
+            value={quickFilters.nameQuery}
+            onChange={(e) => setQuickFilters((f) => ({ ...f, nameQuery: e.target.value }))}
+            className="input-terminal min-w-0 flex-1 text-xs"
+            aria-label="Name filter"
+          />
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            aria-pressed={quickFilters.hydrationOnly}
+            onClick={() => setQuickFilters((f) => ({ ...f, hydrationOnly: !f.hydrationOnly }))}
+            className={`btn-terminal text-xs ${
+              quickFilters.hydrationOnly ? "border-[var(--terminal-green)] text-[var(--terminal-green)]" : ""
+            }`}
+            title='Objects whose description or notes contain "Imported by Intune Hydration Kit"'
+          >
+            Hydration Kit ({hydrationKitCount})
+          </button>
+          <button
+            type="button"
+            onClick={selectMatchingOnly}
+            disabled={!anyFilterActive}
+            className="btn-terminal text-xs"
+            title="Select the matching objects and deselect everything else"
+          >
+            Select matching only
+          </button>
+        </div>
       </div>
 
       <div className="flex items-center justify-between">

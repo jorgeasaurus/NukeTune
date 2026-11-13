@@ -108,3 +108,20 @@ export function selectAllSelectable(objects) {
     selected: isSelectableObject(object),
   }));
 }
+
+/**
+ * Selects exactly `objectIds` (when selectable) and deselects everything
+ * else in `objects`.
+ *
+ * @template {SelectableObject} T
+ * @param {readonly T[]} objects
+ * @param {readonly string[]} objectIds
+ * @returns {T[]}
+ */
+export function selectOnly(objects, objectIds) {
+  const keep = new Set(objectIds);
+  return objects.map((object) => ({
+    ...object,
+    selected: keep.has(object.id) && isSelectableObject(object),
+  }));
+}
