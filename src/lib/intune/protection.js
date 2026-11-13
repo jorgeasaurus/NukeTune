@@ -49,7 +49,14 @@ export function getProtectionReason(categoryId, object) {
         : "";
 
   if (categoryId === "enrollment-configurations") {
+    // `deviceEnrollmentConfigurationType` is the documented marker: its
+    // default* values (defaultLimit, defaultPlatformRestrictions, ...) name
+    // the tenant-wide defaults. The id suffix and priority are kept as
+    // fallbacks for payloads that omit the type.
+    const configurationType = object.deviceEnrollmentConfigurationType;
     if (
+      (typeof configurationType === "string" &&
+        configurationType.toLowerCase().startsWith("default")) ||
       DEFAULT_ENROLLMENT_ID_SUFFIX.test(object.id) ||
       object.priority === 0
     ) {

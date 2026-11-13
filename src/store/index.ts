@@ -11,6 +11,7 @@ import {
   setObjectSelection as updateObjectSelection,
   toggleObjectSelection as toggleSelection,
   selectAllSelectable,
+  isSelectableObject,
 } from "~/utils/objectSelection";
 import type { ObjectSelectionTarget } from "~/utils/objectSelection";
 import {
@@ -251,7 +252,11 @@ export const useTotalObjectCount = () =>
   useNukeTuneStore((state) =>
     state.categories
       .filter((cat) => cat.selected)
-      .reduce((sum, cat) => sum + cat.objects.filter((obj) => obj.selected).length, 0)
+      .reduce(
+        (sum, cat) =>
+          sum + cat.objects.filter((obj) => obj.selected && isSelectableObject(obj)).length,
+        0
+      )
   );
 
 export const useDeletionStats = () =>
