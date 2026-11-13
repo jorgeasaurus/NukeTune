@@ -39,6 +39,9 @@ export function PreviewModal() {
   const tenantPending = tenant.status === "loading";
   const isConfirmed = !tenantPending && isConfirmationMatch(confirmText, confirmPhrase);
   const anyLoading = selectedCategories.some((cat) => cat.loading);
+  // `isLoading` is the initial load of every selected category and replaces
+  // the content with a spinner. A single category being retried (`anyLoading`)
+  // only blocks the delete action, so the rest of the preview stays visible.
   const busy = isLoading || anyLoading;
   const failedCategories = selectedCategories.filter((cat) => cat.error);
   const hasFailures = failedCategories.length > 0;
@@ -127,7 +130,7 @@ export function PreviewModal() {
 
         {/* Content */}
         <div className="flex-1 overflow-auto p-6">
-          {busy ? (
+          {isLoading ? (
             <div className="flex flex-col items-center justify-center py-12">
               <div className="relative h-14 w-14">
                 <div className="absolute inset-0 animate-spin rounded-full border-2 border-[var(--console-border)] border-t-[var(--terminal-green)]" />
@@ -142,6 +145,13 @@ export function PreviewModal() {
             </div>
           ) : (
             <>
+              {anyLoading && (
+                <p className="mb-4 text-xs text-[var(--text-dim)]" role="status">
+                  <span className="text-[var(--terminal-green)]">$</span> Reloading{" "}
+                  {selectedCategories.filter((cat) => cat.loading).length} of{" "}
+                  {selectedCategories.length} categories...
+                </p>
+              )}
               {hasFailures && (
                 <div className="banner-warning mb-4 p-4" role="alert">
                   <p className="text-sm font-semibold text-[var(--warning-amber)]">
@@ -168,9 +178,10 @@ export function PreviewModal() {
                           <button
                             type="button"
                             onClick={() => void loadCategoryObjects(cat.category)}
+                            disabled={cat.loading}
                             className="btn-warning text-xs"
                           >
-                            Retry
+                            {cat.loading ? "Retrying..." : "Retry"}
                           </button>
                           <button
                             type="button"

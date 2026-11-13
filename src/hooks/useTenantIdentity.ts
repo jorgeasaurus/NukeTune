@@ -5,6 +5,7 @@ import { useShallow } from "zustand/react/shallow";
 import { useNukeTuneStore, type TenantStatus } from "~/store";
 import {
   formatTenantLabel,
+  isGuestAccount,
   getConfirmationPhrase,
   getUpnDomain,
   type ConfirmationPhrase,
@@ -67,6 +68,8 @@ export function useTenantDisplay(): TenantDisplay {
   );
 
   const username = account?.username ?? null;
+  // A guest's UPN domain is their home tenant, not the one being modified.
+  const isGuest = isGuestAccount(account);
   const resolvedTenantId = tenantId ?? account?.tenantId ?? null;
 
   return {
@@ -76,12 +79,13 @@ export function useTenantDisplay(): TenantDisplay {
       tenantDomain,
       tenantId: resolvedTenantId,
       username,
+      isGuest,
     }),
     tenantId: resolvedTenantId,
     tenantName,
-    domain: tenantDomain ?? getUpnDomain(username),
+    domain: tenantDomain ?? (isGuest ? null : getUpnDomain(username)),
     status: tenantStatus,
     verified: tenantStatus === "loaded" && Boolean(tenantName ?? tenantDomain),
-    confirmation: getConfirmationPhrase({ tenantDomain, username }),
+    confirmation: getConfirmationPhrase({ tenantDomain, username, isGuest }),
   };
 }
