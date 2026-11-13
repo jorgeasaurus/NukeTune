@@ -1,5 +1,12 @@
-import { useNukeTuneStore, useSelectedCategories, useDeletionStats } from "~/store";
+import { useShallow } from "zustand/react/shallow";
+import { useNukeTuneStore, useDeletionStats } from "~/store";
 import { useIntune } from "~/hooks/useIntune";
+import { sortByDeletionOrder } from "~/lib/intune/deletionOrder";
+import {
+  countRetryableFailures,
+  getProcessedCount,
+  getRunProgress,
+} from "~/utils/deletionRun";
 import { DeletionLog } from "./DeletionLog";
 
 export function DeletionProgress() {
@@ -10,12 +17,23 @@ export function DeletionProgress() {
   const cancelDeletion = useNukeTuneStore((state) => state.cancelDeletion);
   const closePreview = useNukeTuneStore((state) => state.closePreview);
   const reset = useNukeTuneStore((state) => state.reset);
-  const selectedCategories = useSelectedCategories();
+  const shouldCancel = useNukeTuneStore((state) => state.shouldCancel);
+  // Only categories that had objects queued in this run, in deletion order.
+  const runCategories = useNukeTuneStore(
+    useShallow((state) =>
+      sortByDeletionOrder(
+        state.categories.filter((cat) => cat.runTotal > 0),
+        (cat) => cat.category.id
+      )
+    )
+  );
+  const retryableCount = useNukeTuneStore((state) => countRetryableFailures(state.categories));
   const stats = useDeletionStats();
-  const { exportLog } = useIntune();
+  const { exportLog, retryFailed } = useIntune();
 
   const isDeleting = deletionPhase === "deleting" || deletionPhase === "confirming";
   const isComplete = deletionPhase === "complete";
+  const wasCancelled = isComplete && shouldCancel;
 
   const overallProgress =
     stats.totalObjects > 0
@@ -36,18 +54,29 @@ export function DeletionProgress() {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
-      <div className="console-modal flex max-h-[90vh] w-full max-w-4xl flex-col">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="deletion-progress-title"
+        className="console-modal flex max-h-[90vh] w-full max-w-4xl flex-col"
+      >
         {/* Header */}
         <div className="flex items-center justify-between border-b border-[var(--console-border)] p-6">
           <div>
             <div className="flex items-center gap-2 mb-1">
               <span className={`status-dot ${isComplete ? "status-dot-active" : "status-dot-danger"}`} />
               <span className="text-xs font-medium uppercase tracking-wider text-[var(--text-dim)]">
-                {isComplete ? "Operation Complete" : isPaused ? "Paused" : "Executing"}
+                {wasCancelled
+                  ? "Operation Cancelled"
+                  : isComplete
+                    ? "Operation Complete"
+                    : isPaused
+                      ? "Paused"
+                      : "Executing"}
               </span>
             </div>
-            <h2 className="font-display text-2xl font-bold text-white">
-              {isComplete ? "Deletion Complete" : "Deleting Objects..."}
+            <h2 id="deletion-progress-title" className="font-display text-2xl font-bold text-white">
+              {wasCancelled ? "Deletion Cancelled" : isComplete ? "Deletion Complete" : "Deleting Objects..."}
             </h2>
           </div>
           {isComplete && (
@@ -91,7 +120,7 @@ export function DeletionProgress() {
           </div>
 
           {/* Stats Cards */}
-          <div className="mb-6 grid grid-cols-4 gap-4">
+          <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
             <div className="console-panel rounded-xl p-4 text-center">
               <div className="font-mono text-3xl font-bold text-[var(--terminal-green)]">
                 {stats.totalDeleted}
@@ -112,7 +141,7 @@ export function DeletionProgress() {
             </div>
             <div className="console-panel rounded-xl p-4 text-center">
               <div className="font-mono text-3xl font-bold text-[var(--text-dim)]">
-                {stats.totalObjects - stats.totalDeleted - stats.totalFailed - stats.totalSkipped}
+                {stats.totalRemaining}
               </div>
               <div className="mt-1 text-xs uppercase tracking-wider text-[var(--text-dim)]">Remaining</div>
             </div>
@@ -123,17 +152,14 @@ export function DeletionProgress() {
             <h3 className="text-xs font-medium uppercase tracking-wider text-[var(--text-dim)]">
               Category Progress
             </h3>
-            {selectedCategories.map((cat) => {
-              const progress =
-                cat.objects.length > 0
-                  ? ((cat.deletedCount + cat.failedCount + cat.skippedCount) / cat.objects.length) * 100
-                  : 0;
+            {runCategories.map((cat) => {
+              const progress = getRunProgress(cat);
               return (
                 <div key={cat.category.id}>
                   <div className="mb-1 flex justify-between text-xs">
                     <span className="text-[var(--text-dim)]">{cat.category.name}</span>
                     <span className="font-mono text-[var(--text-muted)]">
-                      {cat.deletedCount + cat.failedCount + cat.skippedCount}/{cat.objects.length}
+                      {getProcessedCount(cat)}/{cat.runTotal}
                     </span>
                   </div>
                   <div className="progress-bar h-1.5">
@@ -175,6 +201,15 @@ export function DeletionProgress() {
               <button type="button" onClick={exportLog} className="btn-terminal">
                 Export Log (CSV)
               </button>
+              {isComplete && retryableCount > 0 && (
+                <button
+                  type="button"
+                  onClick={() => void retryFailed()}
+                  className="btn-warning"
+                >
+                  Retry failed ({retryableCount})
+                </button>
+              )}
               {isComplete && (
                 <button type="button" onClick={handleClose} className="btn-success">
                   Done

@@ -30,6 +30,8 @@ export const INTUNE_CATEGORIES: IntuneCategory[] = [
     deleteEndpoint: "/deviceManagement/windowsAutopilotDeploymentProfiles",
     useBeta: true,
     icon: "profile",
+    // Profiles cannot be deleted while assigned.
+    deleteAssignmentsFirst: true,
   },
   {
     id: "mobile-apps",
@@ -40,6 +42,10 @@ export const INTUNE_CATEGORIES: IntuneCategory[] = [
     deleteEndpoint: "/deviceAppManagement/mobileApps",
     useBeta: true,
     icon: "apps",
+    // Same filter the Intune portal uses: hides Microsoft's built-in
+    // managed store apps that are not assigned.
+    filter:
+      "(microsoft.graph.managedApp/appAvailability eq null or microsoft.graph.managedApp/appAvailability eq 'lineOfBusiness' or isAssigned eq true)",
   },
   {
     id: "app-configurations",
@@ -190,7 +196,6 @@ export const INTUNE_CATEGORIES: IntuneCategory[] = [
     deleteEndpoint: "/deviceManagement/deviceEnrollmentConfigurations",
     useBeta: true,
     icon: "enroll",
-    cannotDelete: ["DefaultPlatformRestrictions", "DefaultLimit", "DefaultWindows10EnrollmentCompletionPageConfiguration"],
   },
   {
     id: "group-policy-configurations",
@@ -241,7 +246,6 @@ export const INTUNE_CATEGORIES: IntuneCategory[] = [
     deleteEndpoint: "/deviceManagement/roleScopeTags",
     useBeta: true,
     icon: "tag",
-    cannotDelete: ["Default"],
   },
   {
     id: "role-definitions",
@@ -285,25 +289,6 @@ export const INTUNE_CATEGORIES: IntuneCategory[] = [
   },
 ];
 
-export const PROTECTED_PATTERNS = [
-  /^Default/i,
-  /Microsoft managed/i,
-  /^All Users$/i,
-  /^All Devices$/i,
-  /Built-in/i,
-];
-
-export function isProtectedObject(displayName: string | undefined): boolean {
-  if (!displayName) return false;
-  return PROTECTED_PATTERNS.some((pattern) => pattern.test(displayName));
-}
-
-export function getCategoryById(id: string): IntuneCategory | undefined {
-  return INTUNE_CATEGORIES.find((cat) => cat.id === id);
-}
-
-export function getCategoriesByDangerLevel(
-  level: IntuneCategory["dangerLevel"]
-): IntuneCategory[] {
-  return INTUNE_CATEGORIES.filter((cat) => cat.dangerLevel === level);
-}
+// Protection rules live in ./protection.js (default enrollment
+// configurations, Default scope tag, built-ins, synced groups, name patterns).
+export { PROTECTED_PATTERNS, isProtectedObject } from "./protection";
