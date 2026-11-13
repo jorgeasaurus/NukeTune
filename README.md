@@ -8,7 +8,7 @@
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Next.js](https://img.shields.io/badge/Next.js-15-black)
 ![React](https://img.shields.io/badge/React-19-61DAFB)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6)
 ![Tailwind](https://img.shields.io/badge/Tailwind-4-06B6D4)
 ![Microsoft Graph](https://img.shields.io/badge/Microsoft%20Graph-API-0078D4)
 
@@ -28,7 +28,7 @@ Bulk deletion tool for Microsoft Intune environments. Reset your tenant by remov
 
 ## Features
 
-- Delete objects across 25+ Intune categories
+- Delete objects across 28 Intune categories
 - Microsoft Global Commercial Intune support
 - Preview before deletion
 - Progress tracking and deletion logs
@@ -38,16 +38,19 @@ Bulk deletion tool for Microsoft Intune environments. Reset your tenant by remov
 
 | Critical | High | Medium/Low |
 |----------|------|------------|
-| Managed Devices | Device Configuration | Filters |
-| Autopilot Devices | Settings Catalog | Scope Tags |
-| Autopilot Profiles | Compliance Policies | Device Categories |
-| Applications | PowerShell Scripts | Terms and Conditions |
-| Conditional Access | Shell Scripts (macOS) | Notification Templates |
-| Entra ID Groups | Remediation Scripts | |
-| | App Protection Policies | |
-| | Administrative Templates | |
-| | Security Baselines | |
-| | RBAC Roles & Assignments | |
+| Managed Devices | App Configurations | Filters |
+| Autopilot Devices | App Protection (iOS, Android, Windows) | Scope Tags |
+| Autopilot Deployment Profiles | Device Configuration | Device Categories |
+| Applications | Settings Catalog | Terms and Conditions |
+| Conditional Access | Compliance Policies (Classic, Settings Catalog) | Notification Message Templates |
+| Entra ID Groups | PowerShell Scripts | |
+| | Shell Scripts (macOS) | |
+| | Remediation Scripts | |
+| | Custom Attribute Scripts (macOS) | |
+| | Enrollment Configurations | |
+| | Administrative Templates (ADMX) | |
+| | Security Baseline Instances | |
+| | Custom RBAC Roles & Role Assignments | |
 
 ## Usage
 
@@ -66,22 +69,26 @@ Bulk deletion tool for Microsoft Intune environments. Reset your tenant by remov
 
 ## Required Permissions
 
+Delegated Microsoft Graph scopes requested at sign-in:
+
 | Permission | Purpose |
 |------------|---------|
-| DeviceManagementManagedDevices.ReadWrite.All | Devices |
-| DeviceManagementServiceConfig.ReadWrite.All | Autopilot, enrollment |
-| DeviceManagementConfiguration.ReadWrite.All | Policies, scripts |
-| DeviceManagementApps.ReadWrite.All | Applications |
-| DeviceManagementRBAC.ReadWrite.All | Roles |
+| User.Read | Signed-in user profile |
+| DeviceManagementManagedDevices.ReadWrite.All | Devices, device categories |
+| DeviceManagementServiceConfig.ReadWrite.All | Autopilot, enrollment, terms and conditions, notification templates |
+| DeviceManagementConfiguration.ReadWrite.All | Configuration, compliance and baseline policies, filters |
+| DeviceManagementApps.ReadWrite.All | Applications, app configuration and protection |
+| DeviceManagementScripts.ReadWrite.All | PowerShell, shell, remediation and custom attribute scripts |
+| DeviceManagementRBAC.ReadWrite.All | Scope tags, roles and role assignments |
 | Group.ReadWrite.All | Entra ID Groups |
 | Policy.ReadWrite.ConditionalAccess | Conditional Access |
-| Policy.Read.All | Policy reading |
+| Policy.Read.All | Reading Conditional Access policies |
 
 ## Local Development
 
 ```bash
-# Install dependencies
-npm install
+# Install dependencies (Node 22)
+npm ci
 
 # Set environment variables
 cp .env.example .env
@@ -92,6 +99,13 @@ npm run dev
 ```
 
 Runs on `http://localhost:4000`
+
+```bash
+# Lint + typecheck, tests, production build (CI runs the same steps)
+SKIP_ENV_VALIDATION=1 npm run check
+npm test
+SKIP_ENV_VALIDATION=1 npm run build
+```
 
 ## Environment Variables
 

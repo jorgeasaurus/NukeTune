@@ -2,6 +2,8 @@ import Link from "next/link";
 import { GradientBackground } from "~/components/ui/GradientBackground";
 import { Navigation } from "~/components/ui/Navigation";
 import { PageTitle } from "~/components/ui/PageMeta";
+import { INTUNE_CATEGORIES } from "~/lib/intune/categories";
+import { loginRequest } from "~/lib/msal/msalConfig";
 
 export default function Setup() {
   return (
@@ -73,19 +75,11 @@ export default function Setup() {
                 </div>
                 <p className="mb-4 text-sm text-[var(--text-dim)]">
                   On the dashboard, select the Intune object categories you want
-                  to delete:
+                  to delete. NukeTune covers {INTUNE_CATEGORIES.length}{" "}
+                  categories:
                 </p>
                 <div className="grid gap-2 sm:grid-cols-2">
-                  {[
-                    "Managed Devices",
-                    "Applications",
-                    "Configuration Profiles",
-                    "Compliance Policies",
-                    "Scripts",
-                    "Groups",
-                    "Filters",
-                    "Autopilot Profiles",
-                  ].map((item) => (
+                  {INTUNE_CATEGORIES.map(({ name: item }) => (
                     <div
                       key={item}
                       className="flex items-center gap-2 rounded-lg border border-[var(--console-border)] bg-[var(--console-panel)] p-3 text-sm text-white"
@@ -160,15 +154,7 @@ export default function Setup() {
                     </span>
                   </div>
                   <div className="divide-y divide-[var(--console-border)]">
-                    {[
-                      "DeviceManagementManagedDevices.ReadWrite.All",
-                      "DeviceManagementServiceConfig.ReadWrite.All",
-                      "DeviceManagementConfiguration.ReadWrite.All",
-                      "DeviceManagementApps.ReadWrite.All",
-                      "Policy.ReadWrite.ConditionalAccess",
-                      "DeviceManagementRBAC.ReadWrite.All",
-                      "Group.ReadWrite.All",
-                    ].map((permission) => (
+                    {loginRequest.scopes.map((permission) => (
                       <div
                         key={permission}
                         className="px-4 py-3 font-mono text-xs text-cyan-400 transition-colors hover:bg-white/[0.02]"

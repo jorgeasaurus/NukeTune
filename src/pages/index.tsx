@@ -12,6 +12,7 @@ import {
   getSignInErrorMessage,
 } from "~/components/ui/SignInErrorAlert";
 import { signIn } from "~/lib/auth/authUtils";
+import { INTUNE_CATEGORIES } from "~/lib/intune/categories";
 
 type SignInOrigin = "hero" | "footer";
 
@@ -536,6 +537,16 @@ export default function Home() {
                   </div>
                 ))}
               </div>
+              <p className="mt-6 text-sm text-[var(--text-dim)]">
+                {INTUNE_CATEGORIES.length} categories in total, including app
+                protection, enrollment and RBAC objects.{" "}
+                <Link
+                  href="/setup"
+                  className="text-white underline underline-offset-4 hover:text-[var(--danger-red)]"
+                >
+                  See the full list
+                </Link>
+              </p>
             </div>
           </section>
 
@@ -570,7 +581,7 @@ export default function Home() {
                   },
                   {
                     q: "What permissions do I need?",
-                    a: "You need to be a Global Administrator or Intune Administrator with the ability to consent to Microsoft Graph API permissions. The required scopes include DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, and Group.ReadWrite.All.",
+                    a: "You need to be a Global Administrator or Intune Administrator with the ability to consent to Microsoft Graph API permissions. NukeTune requests delegated scopes such as DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All, DeviceManagementApps.ReadWrite.All, Policy.ReadWrite.ConditionalAccess and Group.ReadWrite.All; the setup guide lists all ten.",
                   },
                   {
                     q: "Can I undo deletions?",
