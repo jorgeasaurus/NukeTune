@@ -160,6 +160,9 @@ export function CategorySelector() {
         return (
           <section key={level} aria-labelledby={`${panelId}-heading`}>
             <div className="mb-3 flex items-center gap-2">
+              {/* Disclosure pattern: the heading wraps the button. A button may
+                  only contain phrasing content, so the heading cannot go inside it. */}
+              <h3 className="m-0 flex min-w-0">
               <button
                 type="button"
                 onClick={() => setCollapsed((prev) => ({ ...prev, [level]: !prev[level] }))}
@@ -178,16 +181,17 @@ export function CategorySelector() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
                 </svg>
                 <span className={`h-2 w-2 shrink-0 rounded-full ${styles.dot}`} />
-                <h3
+                <span
                   id={`${panelId}-heading`}
                   className={`font-display text-sm font-semibold uppercase tracking-wider ${styles.text}`}
                 >
                   {styles.label}
-                </h3>
-                <span className="font-mono text-xs text-[var(--text-dim)]">
+                </span>
+                <span className="font-mono text-xs font-normal text-[var(--text-dim)]">
                   {selectedHere}/{items.length}
                 </span>
               </button>
+              </h3>
               <div className={`h-px min-w-4 flex-1 ${styles.rule}`} />
               <div className="flex shrink-0 items-center">
                 <button
