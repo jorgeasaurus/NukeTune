@@ -6,53 +6,10 @@ import {
   getObjectSelectionTargets,
   isSelectableObject,
 } from "~/utils/objectSelection";
+import { getObjectDisplayName, getObjectType } from "~/utils/objectDisplay";
 
 interface PreviewTableProps {
   categories: CategoryState[];
-}
-
-// Helper to get the best display name for an object based on its type
-function getObjectDisplayName(obj: IntuneObject, categoryId: string): string {
-  // Check common name properties first
-  if (obj.displayName && typeof obj.displayName === "string" && obj.displayName.trim()) {
-    return obj.displayName;
-  }
-  if (obj.name && typeof obj.name === "string" && obj.name.trim()) {
-    return obj.name;
-  }
-
-  // For managed devices, check deviceName
-  if (categoryId === "managed-devices") {
-    const deviceName = typeof obj.deviceName === "string" ? obj.deviceName : undefined;
-    if (deviceName?.trim()) return deviceName;
-
-    const serialNumber = typeof obj.serialNumber === "string" ? obj.serialNumber : undefined;
-    const userPrincipalName = typeof obj.userPrincipalName === "string" ? obj.userPrincipalName : undefined;
-    if (serialNumber && userPrincipalName) {
-      return `${serialNumber} (${userPrincipalName})`;
-    }
-    if (serialNumber) return `SN: ${serialNumber}`;
-    if (userPrincipalName) return userPrincipalName;
-  }
-
-  // For autopilot devices, use serial number and model
-  if (categoryId === "autopilot-devices") {
-    const serialNumber = typeof obj.serialNumber === "string" ? obj.serialNumber : undefined;
-    const model = typeof obj.model === "string" ? obj.model : undefined;
-    const manufacturer = typeof obj.manufacturer === "string" ? obj.manufacturer : undefined;
-
-    if (serialNumber && model) {
-      return `${serialNumber} (${model})`;
-    }
-    if (serialNumber && manufacturer) {
-      return `${serialNumber} (${manufacturer})`;
-    }
-    if (serialNumber) return `SN: ${serialNumber}`;
-    if (model) return model;
-  }
-
-  // Fallback: show truncated ID
-  return `ID: ${obj.id.substring(0, 12)}...`;
 }
 
 // Helper to get additional info/subtitle for an object
@@ -283,7 +240,7 @@ export function PreviewTable({ categories }: PreviewTableProps) {
                       {obj.categoryName}
                     </td>
                     <td className="px-4 py-3 text-[var(--text-dim)]">
-                      {obj["@odata.type"]?.replace("#microsoft.graph.", "") ?? "-"}
+                      {getObjectType(obj) || "-"}
                     </td>
                     <td className="hidden px-4 py-3 font-mono text-[var(--text-muted)] sm:table-cell">
                       {obj.id.substring(0, 8)}...

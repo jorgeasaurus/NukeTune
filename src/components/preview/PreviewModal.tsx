@@ -14,7 +14,8 @@ export function PreviewModal() {
   const toggleCategory = useNukeTuneStore((state) => state.toggleCategory);
   const selectedCategories = useSelectedCategories();
   const totalCount = useTotalObjectCount();
-  const { loadSelectedCategories, loadCategoryObjects, startDeletion } = useIntune();
+  const { loadSelectedCategories, loadCategoryObjects, startDeletion, exportInventory } =
+    useIntune();
   const tenant = useTenantDisplay();
 
   const [confirmText, setConfirmText] = useState("");
@@ -72,6 +73,15 @@ export function PreviewModal() {
   if (!isOpen) return null;
 
   // A dry run makes no Graph writes, so it does not need the typed confirmation.
+  const loadedObjectCount = selectedCategories.reduce((sum, cat) => sum + cat.objects.length, 0);
+  const handleExportInventory = (format: "json" | "csv") => {
+    exportInventory(format, {
+      id: tenant.tenantId,
+      name: tenant.tenantName,
+      domain: tenant.domain,
+    });
+  };
+
   const canDelete = (dryRun || isConfirmed) && !busy && !hasFailures && totalCount > 0;
 
   const handleStartDeletion = () => {
@@ -189,6 +199,36 @@ export function PreviewModal() {
                   </ul>
                 </div>
               )}
+              <div className="console-panel mb-4 flex flex-col gap-3 rounded-lg p-3 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-xs text-[var(--text-dim)]">
+                  <span className="font-semibold uppercase tracking-wider text-white">
+                    Export inventory
+                  </span>{" "}
+                  — a record of the list properties of the {loadedObjectCount} loaded objects.
+                  Not a restorable backup: settings catalog settings, assignments, app content
+                  and script bodies are not included.
+                </p>
+                <div className="flex flex-shrink-0 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleExportInventory("json")}
+                    aria-label="Export inventory as JSON"
+                    disabled={loadedObjectCount === 0}
+                    className="btn-terminal text-xs"
+                  >
+                    JSON
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleExportInventory("csv")}
+                    aria-label="Export inventory as CSV"
+                    disabled={loadedObjectCount === 0}
+                    className="btn-terminal text-xs"
+                  >
+                    CSV
+                  </button>
+                </div>
+              </div>
               <PreviewTable categories={selectedCategories} />
             </>
           )}
