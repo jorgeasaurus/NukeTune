@@ -52,15 +52,21 @@ export function useIntune() {
 
     // Get fresh state when called
     const getState = () => useNukeTuneStore.getState();
+    // The store is reset when the account changes or signs out. A run that
+    // outlives its session must stop issuing deletes and must not write its
+    // progress or completion into the next session's state.
+    const sessionEpoch = getState().sessionEpoch;
+    const sessionActive = () => getState().sessionEpoch === sessionEpoch;
     const selected = getState().categories.filter((cat) => cat.selected && cat.objects.some((obj) => obj.selected));
 
     for (const catState of selected) {
-      if (getState().shouldCancel) break;
+      if (!sessionActive() || getState().shouldCancel) break;
 
       // Only delete selected objects within the category
       const objectsToDelete = catState.objects.filter((obj) => obj.selected);
       await deleteCategoryObjects(catState.category, objectsToDelete, {
         onProgress: (categoryId, completed, total) => {
+          if (!sessionActive()) return;
           const progress = total > 0 ? (completed / total) * 100 : 0;
           const existing = getState().categories.find((c) => c.category.id === categoryId);
           updateCategoryProgress(
@@ -72,6 +78,7 @@ export function useIntune() {
           );
         },
         onItemComplete: (entry) => {
+          if (!sessionActive()) return;
           addLogEntry(entry);
           const currentCatState = getState().categories.find(
             (c) => c.category.id === entry.categoryId
@@ -89,12 +96,12 @@ export function useIntune() {
             );
           }
         },
-        shouldContinue: () => !getState().shouldCancel,
+        shouldContinue: () => sessionActive() && !getState().shouldCancel,
         isPaused: () => getState().isPaused,
       });
     }
 
-    setDeletionPhase("complete");
+    if (sessionActive()) setDeletionPhase("complete");
   }, [setDeletionPhase, clearLog, updateCategoryProgress, addLogEntry]);
 
   const exportLog = useCallback(() => {
