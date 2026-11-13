@@ -18,6 +18,8 @@ export function DeletionProgress() {
   const closePreview = useNukeTuneStore((state) => state.closePreview);
   const reset = useNukeTuneStore((state) => state.reset);
   const shouldCancel = useNukeTuneStore((state) => state.shouldCancel);
+  const dryRun = useNukeTuneStore((state) => state.dryRun);
+  const finishDryRun = useNukeTuneStore((state) => state.finishDryRun);
   // Only categories that had objects queued in this run, in deletion order.
   const runCategories = useNukeTuneStore(
     useShallow((state) =>
@@ -42,6 +44,11 @@ export function DeletionProgress() {
 
   const handleClose = () => {
     if (isDeleting && !isPaused) {
+      return;
+    }
+    // A dry run changed nothing; go back to the preview with selections intact.
+    if (dryRun) {
+      finishDryRun();
       return;
     }
     reset();
@@ -74,9 +81,16 @@ export function DeletionProgress() {
                       ? "Paused"
                       : "Executing"}
               </span>
+              {dryRun && (
+                <span className="rounded border border-[var(--warning-amber-dim)] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[var(--warning-amber)]">
+                  Dry run
+                </span>
+              )}
             </div>
             <h2 id="deletion-progress-title" className="font-display text-2xl font-bold text-white">
-              {wasCancelled ? "Deletion Cancelled" : isComplete ? "Deletion Complete" : "Deleting Objects..."}
+              {dryRun
+                ? wasCancelled ? "Dry Run Cancelled" : isComplete ? "Dry Run Complete" : "Simulating Deletion..."
+                : wasCancelled ? "Deletion Cancelled" : isComplete ? "Deletion Complete" : "Deleting Objects..."}
             </h2>
           </div>
           {isComplete && (
@@ -125,7 +139,7 @@ export function DeletionProgress() {
               <div className="font-mono text-3xl font-bold text-[var(--terminal-green)]">
                 {stats.totalDeleted}
               </div>
-              <div className="mt-1 text-xs uppercase tracking-wider text-[var(--text-dim)]">Deleted</div>
+              <div className="mt-1 text-xs uppercase tracking-wider text-[var(--text-dim)]">{dryRun ? "Would delete" : "Deleted"}</div>
             </div>
             <div className="console-panel rounded-xl p-4 text-center">
               <div className="font-mono text-3xl font-bold text-[var(--danger-red)]">

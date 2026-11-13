@@ -20,10 +20,12 @@ export function PreviewModal() {
   const [confirmText, setConfirmText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [hasLoaded, setHasLoaded] = useState(false);
+  const [dryRun, setDryRun] = useState(false);
 
   const titleId = useId();
   const confirmInputId = useId();
   const confirmHintId = useId();
+  const dryRunId = useId();
 
   // Once deletion starts, DeletionProgress takes over; don't keep this modal
   // (and its confirm input) mounted underneath it.
@@ -63,17 +65,19 @@ export function PreviewModal() {
     if (!previewOpen) {
       setConfirmText("");
       setHasLoaded(false);
+      setDryRun(false);
     }
   }, [previewOpen]);
 
   if (!isOpen) return null;
 
-  const canDelete = isConfirmed && !busy && !hasFailures && totalCount > 0;
+  // A dry run makes no Graph writes, so it does not need the typed confirmation.
+  const canDelete = (dryRun || isConfirmed) && !busy && !hasFailures && totalCount > 0;
 
   const handleStartDeletion = () => {
     if (!canDelete) return;
     setDeletionPhase("confirming");
-    void startDeletion();
+    void startDeletion({ dryRun });
   };
 
   const handleClose = () => {
@@ -192,10 +196,21 @@ export function PreviewModal() {
 
         {/* Footer */}
         <div className="border-t border-[var(--console-border)] p-6">
-          <div className="banner-danger mb-4 p-4">
-            <p className="text-sm text-[var(--critical-red)]">
-              <strong>Warning:</strong> This action is irreversible. You are about
-              to delete{" "}
+          <div className={`${dryRun ? "banner-warning" : "banner-danger"} mb-4 p-4`}>
+            <p
+              className={`text-sm ${dryRun ? "text-[var(--warning-amber)]" : "text-[var(--critical-red)]"}`}
+            >
+              {dryRun ? (
+                <>
+                  <strong>Dry run:</strong> nothing will be deleted. You are about to
+                  simulate deleting{" "}
+                </>
+              ) : (
+                <>
+                  <strong>Warning:</strong> This action is irreversible. You are about
+                  to delete{" "}
+                </>
+              )}
               <strong className="font-mono">{busy ? "…" : totalCount}</strong> objects across{" "}
               <strong className="font-mono">{selectedCategories.length}</strong> categories in{" "}
               <strong title={tenant.tenantId ? `Tenant ID: ${tenant.tenantId}` : undefined}>
@@ -246,22 +261,42 @@ export function PreviewModal() {
                 </p>
               )}
             </div>
-            <div className="flex gap-3">
-              <button type="button" onClick={handleClose} className="btn-terminal">
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleStartDeletion}
-                disabled={!canDelete}
-                className="btn-danger"
+            <div className="flex flex-col gap-3">
+              <label
+                htmlFor={dryRunId}
+                className="flex cursor-pointer items-center gap-2 text-xs text-[var(--text-dim)]"
               >
-                {busy
-                  ? "Loading..."
-                  : hasFailures
-                    ? `${failedCategories.length} Failed to Load`
-                    : `Delete ${totalCount} Objects`}
-              </button>
+                <input
+                  id={dryRunId}
+                  type="checkbox"
+                  checked={dryRun}
+                  onChange={(e) => setDryRun(e.target.checked)}
+                  className="checkbox-terminal"
+                />
+                <span>
+                  <span className="font-semibold uppercase tracking-wider text-white">Dry run</span>{" "}
+                  — simulate, delete nothing
+                </span>
+              </label>
+              <div className="flex gap-3">
+                <button type="button" onClick={handleClose} className="btn-terminal">
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleStartDeletion}
+                  disabled={!canDelete}
+                  className={dryRun ? "btn-warning" : "btn-danger"}
+                >
+                  {busy
+                    ? "Loading..."
+                    : hasFailures
+                      ? `${failedCategories.length} Failed to Load`
+                      : dryRun
+                        ? `Simulate ${totalCount} Objects`
+                        : `Delete ${totalCount} Objects`}
+                </button>
+              </div>
             </div>
           </div>
         </div>

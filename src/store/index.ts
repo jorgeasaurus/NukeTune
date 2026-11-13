@@ -42,6 +42,8 @@ interface NukeTuneState {
   isPaused: boolean;
   deletionLog: DeletionLogEntry[];
   shouldCancel: boolean;
+  /** The current/last run is a simulation: no Graph writes. */
+  dryRun: boolean;
 
   // Actions
   setUser: (name: string | null, tenantId: string | null, tenantName: string | null) => void;
@@ -60,7 +62,9 @@ interface NukeTuneState {
   setObjectSelection: (targets: ObjectSelectionTarget[], selected: boolean) => void;
   setCategoryLoading: (categoryId: string, loading: boolean) => void;
   setCategoryError: (categoryId: string, error: string | null) => void;
-  beginDeletionRun: (plan: DeletionPlanEntry[]) => void;
+  beginDeletionRun: (plan: DeletionPlanEntry[], options?: { dryRun?: boolean }) => void;
+  /** Leave a finished dry run and return to the unchanged preview. */
+  finishDryRun: () => void;
   recordDeletionResult: (entry: DeletionLogEntry) => void;
   openPreview: () => void;
   closePreview: () => void;
@@ -102,6 +106,7 @@ export const useNukeTuneStore = create<NukeTuneState>()(
       isPaused: false,
       deletionLog: [],
       shouldCancel: false,
+      dryRun: false,
 
       // Actions
       setUser: (name, tenantId, tenantName) =>
@@ -206,12 +211,24 @@ export const useNukeTuneStore = create<NukeTuneState>()(
           ),
         })),
 
-      beginDeletionRun: (plan) =>
+      beginDeletionRun: (plan, options) =>
         set((state) => ({
           categories: beginRun(state.categories, plan),
           deletionPhase: "deleting",
           isPaused: false,
           shouldCancel: false,
+          dryRun: options?.dryRun ?? false,
+        })),
+
+      finishDryRun: () =>
+        set((state) => ({
+          categories: beginRun(state.categories, []),
+          previewOpen: true,
+          deletionPhase: "preview",
+          isPaused: false,
+          shouldCancel: false,
+          dryRun: false,
+          deletionLog: [],
         })),
 
       recordDeletionResult: (entry) =>
@@ -248,6 +265,7 @@ export const useNukeTuneStore = create<NukeTuneState>()(
           isPaused: false,
           deletionLog: [],
           shouldCancel: false,
+          dryRun: false,
         }),
     }),
     { name: "NukeTuneStore" }
