@@ -48,7 +48,10 @@ export interface TenantDisplay {
   label: string;
   tenantId: string | null;
   tenantName: string | null;
-  /** Primary domain from the org lookup, else the account's UPN domain. */
+  /**
+   * Primary domain from the org lookup, else the account's UPN domain. Null
+   * for a guest whose lookup failed: their UPN domain is their home tenant.
+   */
   domain: string | null;
   status: TenantStatus;
   /** True when the label comes from the verified organization record. */
