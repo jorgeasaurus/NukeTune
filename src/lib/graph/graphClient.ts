@@ -1,6 +1,7 @@
 import { Client } from "@microsoft/microsoft-graph-client";
 import {
   InteractionRequiredAuthError,
+  type AccountInfo,
   type AuthenticationResult,
 } from "@azure/msal-browser";
 import { msalInstance, loginRequest } from "../msal";
@@ -29,7 +30,7 @@ async function getAccessToken(): Promise<string> {
     if (!(error instanceof InteractionRequiredAuthError)) {
       throw error;
     }
-    const response = await acquireTokenInteractively();
+    const response = await acquireTokenInteractively(account);
     return response.accessToken;
   }
 }
@@ -38,9 +39,26 @@ async function getAccessToken(): Promise<string> {
 // of them they must share one popup instead of each opening their own.
 let interactiveRequest: Promise<AuthenticationResult> | null = null;
 
-function acquireTokenInteractively(): Promise<AuthenticationResult> {
+// The popup is locked to the active account, and its result is checked
+// against it: a token for another account or tenant must never be used while
+// the UI shows, and asks the user to confirm, the active one.
+function acquireTokenInteractively(
+  account: AccountInfo
+): Promise<AuthenticationResult> {
   interactiveRequest ??= msalInstance
-    .acquireTokenPopup(loginRequest)
+    .acquireTokenPopup({ ...loginRequest, account })
+    .then((response) => {
+      const received = response.account;
+      if (
+        received.homeAccountId !== account.homeAccountId ||
+        received.tenantId !== account.tenantId
+      ) {
+        throw new Error(
+          "Signed in with a different account or tenant than the active session. Sign out and sign in again to switch."
+        );
+      }
+      return response;
+    })
     .finally(() => {
       interactiveRequest = null;
     });

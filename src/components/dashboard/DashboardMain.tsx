@@ -42,8 +42,10 @@ export function DashboardMain() {
           </div>
           {tenant.status === "failed" && (
             <p className="mt-1 text-xs text-[var(--warning-amber)]/80">
-              Could not read the organization name; showing the signed-in
-              account&apos;s domain. Verify this is the tenant you intend to modify.
+              {tenant.domain
+                ? "Could not read the organization name; showing the signed-in account's domain."
+                : "Could not read the organization name; showing the tenant ID only."}{" "}
+              Verify this is the tenant you intend to modify.
             </p>
           )}
         </div>

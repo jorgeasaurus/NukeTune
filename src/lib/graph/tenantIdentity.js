@@ -161,14 +161,31 @@ export function formatTenantLabel({ tenantName, tenantDomain, tenantId, username
 }
 
 /**
- * Whether the active account changed in a way that must discard tenant-scoped
- * state. `undefined` means "not observed yet" (first render).
+ * Identity of a tenant session: who is signed in AND which tenant Graph calls
+ * target. `homeAccountId` alone is not enough: it is `<objectId>.<homeTenantId>`
+ * and stays the same when the same user becomes active in a different
+ * resource tenant, where every tenant-scoped piece of state must be discarded.
  *
- * @param {string | null | undefined} previousHomeAccountId
- * @param {string | null} nextHomeAccountId
+ * @param {{ homeAccountId?: string | null, tenantId?: string | null } | null | undefined} account
+ * @returns {string | null} null when signed out
+ */
+export function getTenantSessionKey(account) {
+  const homeAccountId = nonEmptyString(account?.homeAccountId);
+  if (!homeAccountId) return null;
+  const tenantId = nonEmptyString(account?.tenantId) ?? "";
+  return `${homeAccountId.toLowerCase()}|${tenantId.toLowerCase()}`;
+}
+
+/**
+ * Whether the tenant session changed in a way that must discard tenant-scoped
+ * state. Compare keys from `getTenantSessionKey`. `undefined` means "not
+ * observed yet" (first render).
+ *
+ * @param {string | null | undefined} previousSessionKey
+ * @param {string | null} nextSessionKey
  * @returns {boolean}
  */
-export function shouldResetForAccountChange(previousHomeAccountId, nextHomeAccountId) {
-  if (previousHomeAccountId === undefined) return nextHomeAccountId === null;
-  return previousHomeAccountId !== nextHomeAccountId;
+export function shouldResetForAccountChange(previousSessionKey, nextSessionKey) {
+  if (previousSessionKey === undefined) return nextSessionKey === null;
+  return previousSessionKey !== nextSessionKey;
 }
