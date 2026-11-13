@@ -1,3 +1,6 @@
+import { useId, useRef } from "react";
+import { useModalA11y } from "~/hooks/useModalA11y";
+
 interface CloudEnvironmentSelectorProps {
   open: boolean;
   onContinue: () => void;
@@ -9,6 +12,11 @@ export function CloudEnvironmentSelector({
   onContinue,
   onCancel,
 }: CloudEnvironmentSelectorProps) {
+  const titleId = useId();
+  const descriptionId = useId();
+  const continueRef = useRef<HTMLButtonElement>(null);
+  const dialogRef = useModalA11y<HTMLDivElement>(open, onCancel, continueRef);
+
   if (!open) return null;
 
   return (
@@ -16,9 +24,18 @@ export function CloudEnvironmentSelector({
       <div
         className="absolute inset-0 bg-black/80 backdrop-blur-sm"
         onClick={onCancel}
+        aria-hidden="true"
       />
 
-      <div className="console-modal relative z-10 mx-4 w-full max-w-lg p-6">
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        aria-describedby={descriptionId}
+        tabIndex={-1}
+        className="console-modal relative z-10 mx-4 w-full max-w-lg p-6 outline-none"
+      >
         <div className="mb-6">
           <div className="mb-2 flex items-center gap-2">
             <svg
@@ -38,10 +55,10 @@ export function CloudEnvironmentSelector({
               Environment Selection
             </span>
           </div>
-          <h2 className="font-display text-xl font-semibold text-white">
+          <h2 id={titleId} className="font-display text-xl font-semibold text-white">
             Select Cloud Environment
           </h2>
-          <p className="mt-1 text-sm text-[var(--text-dim)]">
+          <p id={descriptionId} className="mt-1 text-sm text-[var(--text-dim)]">
             NukeTune supports Microsoft Global Commercial tenants only.
           </p>
         </div>
@@ -68,10 +85,12 @@ export function CloudEnvironmentSelector({
         </div>
 
         <div className="mt-6 flex justify-end gap-3">
-          <button onClick={onCancel} className="btn-terminal text-xs">
+          <button type="button" onClick={onCancel} className="btn-terminal text-xs">
             Cancel
           </button>
           <button
+            ref={continueRef}
+            type="button"
             onClick={onContinue}
             className="btn-success flex items-center gap-2 text-xs"
           >

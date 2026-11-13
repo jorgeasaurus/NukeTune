@@ -9,6 +9,7 @@ import {
   initializeMsal,
   CustomNavigationClient,
 } from "~/lib/msal";
+import { TenantSessionSync } from "~/components/auth/TenantSessionSync";
 
 import "~/styles/globals.css";
 
@@ -25,6 +26,7 @@ const spaceGrotesk = Space_Grotesk({
 const MyApp: AppType = ({ Component, pageProps }) => {
   const router = useRouter();
   const [isInitialized, setIsInitialized] = useState(false);
+  const [initError, setInitError] = useState<string | null>(null);
   const initStarted = useRef(false);
 
   useEffect(() => {
@@ -32,14 +34,59 @@ const MyApp: AppType = ({ Component, pageProps }) => {
     initStarted.current = true;
 
     const init = async () => {
-      const navigationClient = new CustomNavigationClient(router);
-      msalInstance.setNavigationClient(navigationClient);
-      await initializeMsal();
-      setIsInitialized(true);
+      try {
+        const navigationClient = new CustomNavigationClient(router);
+        msalInstance.setNavigationClient(navigationClient);
+        await initializeMsal();
+        setIsInitialized(true);
+      } catch (error) {
+        console.error("Failed to initialize authentication", error);
+        setInitError(
+          error instanceof Error && error.message
+            ? error.message
+            : "Unknown error while initializing authentication.",
+        );
+      }
     };
     void init();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  if (initError !== null) {
+    return (
+      <div className={`${jetbrainsMono.variable} ${spaceGrotesk.variable} font-mono`}>
+        <div className="flex min-h-screen items-center justify-center bg-[var(--void-black)] p-4">
+          <div className="console-panel w-full max-w-lg rounded-xl p-8" role="alert">
+            <div className="mb-2 flex items-center gap-2">
+              <span className="status-dot status-dot-danger" />
+              <span className="text-xs font-medium uppercase tracking-wider text-[var(--text-dim)]">
+                Initialization Failed
+              </span>
+            </div>
+            <h1 className="font-display text-xl font-semibold text-white">
+              NukeTune could not start sign-in
+            </h1>
+            <p className="mt-2 text-sm text-[var(--text-dim)]">
+              Check that the app registration client ID is configured and that
+              this browser allows session storage for this site.
+            </p>
+            <pre className="mt-4 overflow-auto whitespace-pre-wrap break-words rounded-md border border-[var(--console-border)] bg-black/30 p-3 text-xs text-[var(--critical-red)]">
+              {initError}
+            </pre>
+            <div className="mt-6 flex justify-end">
+              <button
+                type="button"
+                onClick={() => window.location.reload()}
+                className="btn-terminal text-xs"
+              >
+                Reload
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!isInitialized) {
     return (
@@ -65,6 +112,7 @@ const MyApp: AppType = ({ Component, pageProps }) => {
   return (
     <MsalProvider instance={msalInstance}>
       <div className={`${jetbrainsMono.variable} ${spaceGrotesk.variable} font-mono`}>
+        <TenantSessionSync />
         <Component {...pageProps} />
         <Analytics />
       </div>

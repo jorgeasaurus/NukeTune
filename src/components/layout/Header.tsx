@@ -1,14 +1,13 @@
 import Link from "next/link";
 import Image from "next/image";
-import { useMsal } from "@azure/msal-react";
 import { SignOutButton } from "../auth";
+import { useTenantDisplay } from "~/hooks/useTenantIdentity";
 
 const navLinkClass =
   "rounded-md px-3 py-2 text-xs font-medium uppercase tracking-wider text-[var(--text-dim)] transition-all hover:bg-white/5 hover:text-white";
 
 export function Header() {
-  const { accounts } = useMsal();
-  const account = accounts[0];
+  const { account, label, tenantId, status, verified } = useTenantDisplay();
 
   return (
     <header className="sticky top-0 z-40 border-b border-[var(--console-border)] bg-[var(--console-dark)]/90 backdrop-blur-xl">
@@ -51,8 +50,18 @@ export function Header() {
                     {account.name ?? account.username}
                   </span>
                 </div>
-                <div className="mt-0.5 text-[10px] font-mono text-[var(--text-muted)]">
-                  {account.tenantId?.slice(0, 8)}...
+                <div
+                  className="mt-0.5 max-w-[16rem] truncate text-[11px] font-mono text-[var(--warning-amber)]"
+                  title={tenantId ? `Tenant ID: ${tenantId}` : undefined}
+                >
+                  {status === "loading" && !verified ? (
+                    <span className="text-[var(--text-muted)]">Resolving tenant...</span>
+                  ) : (
+                    <>
+                      <span className="sr-only">Tenant: </span>
+                      {label}
+                    </>
+                  )}
                 </div>
               </div>
               <SignOutButton />

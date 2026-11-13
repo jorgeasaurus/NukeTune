@@ -7,16 +7,30 @@ import type {
   IntuneObject,
 } from "~/types/intune";
 import { INTUNE_CATEGORIES } from "~/lib/intune/categories";
-import { setObjectSelection as updateObjectSelection } from "~/utils/objectSelection";
+import {
+  setObjectSelection as updateObjectSelection,
+  toggleObjectSelection as toggleSelection,
+  selectAllSelectable,
+  isSelectableObject,
+} from "~/utils/objectSelection";
 import type { ObjectSelectionTarget } from "~/utils/objectSelection";
+import {
+  applyDeletionEntry,
+  beginRun,
+  computeDeletionStats,
+  type DeletionPlanEntry,
+} from "~/utils/deletionRun";
 
 export type DeletionPhase = "idle" | "preview" | "confirming" | "deleting" | "complete";
+export type TenantStatus = "idle" | "loading" | "loaded" | "failed";
 
 interface NukeTuneState {
   // Auth state
   userDisplayName: string | null;
   tenantId: string | null;
   tenantName: string | null;
+  tenantDomain: string | null;
+  tenantStatus: TenantStatus;
 
   // Categories state
   categories: CategoryState[];
@@ -29,9 +43,18 @@ interface NukeTuneState {
   isPaused: boolean;
   deletionLog: DeletionLogEntry[];
   shouldCancel: boolean;
+  // Bumped whenever tenant-scoped state is reset. A running deletion captures
+  // it at start and stops as soon as it changes.
+  sessionEpoch: number;
 
   // Actions
   setUser: (name: string | null, tenantId: string | null, tenantName: string | null) => void;
+  setTenantInfo: (info: {
+    tenantId: string | null;
+    tenantName: string | null;
+    tenantDomain: string | null;
+    tenantStatus: TenantStatus;
+  }) => void;
   initializeCategories: () => void;
   toggleCategory: (categoryId: string) => void;
   selectAllCategories: () => void;
@@ -41,13 +64,8 @@ interface NukeTuneState {
   setObjectSelection: (targets: ObjectSelectionTarget[], selected: boolean) => void;
   setCategoryLoading: (categoryId: string, loading: boolean) => void;
   setCategoryError: (categoryId: string, error: string | null) => void;
-  updateCategoryProgress: (
-    categoryId: string,
-    progress: number,
-    deletedCount: number,
-    failedCount: number,
-    skippedCount: number
-  ) => void;
+  beginDeletionRun: (plan: DeletionPlanEntry[]) => void;
+  recordDeletionResult: (entry: DeletionLogEntry) => void;
   openPreview: () => void;
   closePreview: () => void;
   setDeletionPhase: (phase: DeletionPhase) => void;
@@ -64,11 +82,13 @@ const initialCategories: CategoryState[] = INTUNE_CATEGORIES.map((category) => (
   selected: false,
   objects: [],
   loading: false,
+  loaded: false,
   error: null,
-  deletionProgress: 0,
+  runTotal: 0,
   deletedCount: 0,
   failedCount: 0,
   skippedCount: 0,
+  failedObjectIds: [],
 }));
 
 export const useNukeTuneStore = create<NukeTuneState>()(
@@ -78,16 +98,21 @@ export const useNukeTuneStore = create<NukeTuneState>()(
       userDisplayName: null,
       tenantId: null,
       tenantName: null,
+      tenantDomain: null,
+      tenantStatus: "idle",
       categories: initialCategories,
       previewOpen: false,
       deletionPhase: "idle",
       isPaused: false,
       deletionLog: [],
       shouldCancel: false,
+      sessionEpoch: 0,
 
       // Actions
       setUser: (name, tenantId, tenantName) =>
         set({ userDisplayName: name, tenantId, tenantName }),
+
+      setTenantInfo: (info) => set(info),
 
       initializeCategories: () =>
         set({
@@ -96,11 +121,13 @@ export const useNukeTuneStore = create<NukeTuneState>()(
             selected: false,
             objects: [],
             loading: false,
+            loaded: false,
             error: null,
-            deletionProgress: 0,
+            runTotal: 0,
             deletedCount: 0,
             failedCount: 0,
             skippedCount: 0,
+            failedObjectIds: [],
           })),
         }),
 
@@ -133,7 +160,7 @@ export const useNukeTuneStore = create<NukeTuneState>()(
         set((state) => ({
           categories: state.categories.map((cat) =>
             cat.category.id === categoryId
-              ? { ...cat, objects: objects.map((obj) => ({ ...obj, selected: true })) }
+              ? { ...cat, objects: selectAllSelectable(objects), loaded: true }
               : cat
           ),
         })),
@@ -142,12 +169,7 @@ export const useNukeTuneStore = create<NukeTuneState>()(
         set((state) => ({
           categories: state.categories.map((cat) =>
             cat.category.id === categoryId
-              ? {
-                  ...cat,
-                  objects: cat.objects.map((obj) =>
-                    obj.id === objectId ? { ...obj, selected: !obj.selected } : obj
-                  ),
-                }
+              ? { ...cat, objects: toggleSelection(cat.objects, objectId) }
               : cat
           ),
         })),
@@ -189,16 +211,28 @@ export const useNukeTuneStore = create<NukeTuneState>()(
           ),
         })),
 
-      updateCategoryProgress: (categoryId, progress, deletedCount, failedCount, skippedCount) =>
+      beginDeletionRun: (plan) =>
         set((state) => ({
-          categories: state.categories.map((cat) =>
-            cat.category.id === categoryId
-              ? { ...cat, deletionProgress: progress, deletedCount, failedCount, skippedCount }
-              : cat
-          ),
+          categories: beginRun(state.categories, plan),
+          deletionPhase: "deleting",
+          isPaused: false,
+          shouldCancel: false,
         })),
 
-      openPreview: () => set({ previewOpen: true, deletionPhase: "preview" }),
+      recordDeletionResult: (entry) =>
+        set((state) => ({
+          categories: state.categories.map((cat) => applyDeletionEntry(cat, entry)),
+          deletionLog: [...state.deletionLog, entry],
+        })),
+
+      // Only from idle/preview: while a run is confirming, deleting or showing
+      // its result, reopening the preview would hide the progress dialog.
+      openPreview: () =>
+        set((state) =>
+          state.deletionPhase === "idle" || state.deletionPhase === "preview"
+            ? { previewOpen: true, deletionPhase: "preview" }
+            : {}
+        ),
 
       closePreview: () =>
         set({ previewOpen: false, deletionPhase: "idle" }),
@@ -232,6 +266,26 @@ export const useNukeTuneStore = create<NukeTuneState>()(
   )
 );
 
+/**
+ * Discard everything scoped to the signed-in tenant: selections, fetched
+ * objects, deletion state and tenant identity. Used on sign-out and whenever
+ * the active account changes so tenant A's data never shows under tenant B.
+ */
+export function resetTenantSession() {
+  // Invalidate any deletion still running for the previous account before
+  // clearing its state.
+  useNukeTuneStore.setState((current) => ({ sessionEpoch: current.sessionEpoch + 1 }));
+  const state = useNukeTuneStore.getState();
+  state.reset();
+  state.setUser(null, null, null);
+  state.setTenantInfo({
+    tenantId: null,
+    tenantName: null,
+    tenantDomain: null,
+    tenantStatus: "idle",
+  });
+}
+
 // Selectors - use useShallow for array/object returns to prevent infinite re-renders
 export const useSelectedCategories = () =>
   useNukeTuneStore(
@@ -242,18 +296,12 @@ export const useTotalObjectCount = () =>
   useNukeTuneStore((state) =>
     state.categories
       .filter((cat) => cat.selected)
-      .reduce((sum, cat) => sum + cat.objects.filter((obj) => obj.selected).length, 0)
+      .reduce(
+        (sum, cat) =>
+          sum + cat.objects.filter((obj) => obj.selected && isSelectableObject(obj)).length,
+        0
+      )
   );
 
 export const useDeletionStats = () =>
-  useNukeTuneStore(
-    useShallow((state) => {
-      const selected = state.categories.filter((cat) => cat.selected);
-      return {
-        totalDeleted: selected.reduce((sum, cat) => sum + cat.deletedCount, 0),
-        totalFailed: selected.reduce((sum, cat) => sum + cat.failedCount, 0),
-        totalSkipped: selected.reduce((sum, cat) => sum + cat.skippedCount, 0),
-        totalObjects: selected.reduce((sum, cat) => sum + cat.objects.filter((obj) => obj.selected).length, 0),
-      };
-    })
-  );
+  useNukeTuneStore(useShallow((state) => computeDeletionStats(state.categories)));

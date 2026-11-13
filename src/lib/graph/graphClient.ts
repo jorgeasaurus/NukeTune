@@ -1,6 +1,14 @@
 import { Client } from "@microsoft/microsoft-graph-client";
+import {
+  InteractionRequiredAuthError,
+  type AccountInfo,
+  type AuthenticationResult,
+} from "@azure/msal-browser";
 import { msalInstance, loginRequest } from "../msal";
-import { COMMERCIAL_GRAPH_BASE_URL } from "../msal/commercialCloud";
+import {
+  COMMERCIAL_AUTHORITY_ORIGIN,
+  COMMERCIAL_GRAPH_BASE_URL,
+} from "../msal/commercialCloud";
 import type {
   GraphListResponse,
   IntuneObject,
@@ -19,10 +27,61 @@ async function getAccessToken(): Promise<string> {
       account,
     });
     return response.accessToken;
-  } catch {
-    const response = await msalInstance.acquireTokenPopup(loginRequest);
+  } catch (error) {
+    // Only an interaction-required failure can be fixed by a popup; anything
+    // else (network, config) should surface as-is.
+    if (!(error instanceof InteractionRequiredAuthError)) {
+      throw error;
+    }
+    const response = await acquireTokenInteractively(account);
     return response.accessToken;
   }
+}
+
+// Several Graph requests run concurrently; when the silent call fails for all
+// of them they must share one popup instead of each opening their own.
+let interactiveRequest: Promise<AuthenticationResult> | null = null;
+
+const TENANT_ID_PATTERN = /^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i;
+
+// Interactive requests take their tenant from the authority, not from the
+// account. Against /common a session in a resource tenant would come back as
+// the user's home tenant and be rejected below, so target the account's own
+// tenant when it is a well-formed tenant ID.
+function tenantAuthority(account: AccountInfo): string | undefined {
+  return TENANT_ID_PATTERN.test(account.tenantId)
+    ? `${COMMERCIAL_AUTHORITY_ORIGIN}/${account.tenantId}`
+    : undefined;
+}
+
+// The popup is locked to the active account, and its result is checked
+// against it: a token for another account or tenant must never be used while
+// the UI shows, and asks the user to confirm, the active one.
+function acquireTokenInteractively(
+  account: AccountInfo
+): Promise<AuthenticationResult> {
+  interactiveRequest ??= msalInstance
+    .acquireTokenPopup({
+      ...loginRequest,
+      account,
+      authority: tenantAuthority(account),
+    })
+    .then((response) => {
+      const received = response.account;
+      if (
+        received.homeAccountId !== account.homeAccountId ||
+        received.tenantId !== account.tenantId
+      ) {
+        throw new Error(
+          "Signed in with a different account or tenant than the active session. Sign out and sign in again to switch."
+        );
+      }
+      return response;
+    })
+    .finally(() => {
+      interactiveRequest = null;
+    });
+  return interactiveRequest;
 }
 
 export async function getGraphClient(): Promise<Client> {
@@ -95,11 +154,11 @@ export function parseGraphError(error: unknown): GraphError {
   if (error && typeof error === "object") {
     const err = error as Record<string, unknown>;
 
-    if (err.statusCode && err.code) {
+    if (typeof err.statusCode === "number" && typeof err.code === "string") {
       return {
-        statusCode: err.statusCode as number,
-        code: err.code as string,
-        message: (err.message as string) ?? "Unknown error",
+        statusCode: err.statusCode,
+        code: err.code,
+        message: typeof err.message === "string" && err.message ? err.message : "Unknown error",
         requestId: err.requestId as string | undefined,
       };
     }
@@ -122,14 +181,16 @@ export function parseGraphError(error: unknown): GraphError {
     }
   }
 
+  const statusCode =
+    error && typeof error === "object" &&
+    typeof (error as { statusCode?: unknown }).statusCode === "number"
+      ? (error as { statusCode: number }).statusCode
+      : 500;
+
   return {
-    statusCode: 500,
+    statusCode,
     code: "UnknownError",
     message:
       error instanceof Error ? error.message : "An unknown error occurred",
   };
-}
-
-export function isRetryableError(error: GraphError): boolean {
-  return error.statusCode >= 500 || error.statusCode === 429;
 }

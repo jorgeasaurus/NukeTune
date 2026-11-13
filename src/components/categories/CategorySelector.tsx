@@ -15,7 +15,7 @@ export function CategorySelector() {
     const cat = categories.find((c) => c.category.id === categoryId);
     if (!cat || cat.category.requiresAppPermissions) return;
 
-    if (!cat.selected && cat.objects.length === 0 && !cat.loading) {
+    if (!cat.selected && !cat.loaded && !cat.loading) {
       void loadCategoryObjects(cat.category);
     }
     toggleCategory(categoryId);
@@ -24,7 +24,7 @@ export function CategorySelector() {
   const handleSelectAll = () => {
     selectAll();
     categories.forEach((cat) => {
-      if (!cat.category.requiresAppPermissions && cat.objects.length === 0 && !cat.loading) {
+      if (!cat.category.requiresAppPermissions && !cat.loaded && !cat.loading) {
         void loadCategoryObjects(cat.category);
       }
     });

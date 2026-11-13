@@ -9,6 +9,10 @@ export interface IntuneObject {
   lastModifiedDateTime?: string;
   description?: string;
   selected?: boolean;
+  /** Set at fetch time when the object must never be deleted. */
+  _protectedReason?: string;
+  _categoryId?: string;
+  _categoryName?: string;
   [key: string]: unknown;
 }
 
@@ -28,8 +32,10 @@ export interface IntuneCategory {
   deleteEndpoint: string;
   useBeta: boolean;
   icon: string;
+  /** Raw OData $filter applied to the list call. */
   filter?: string;
-  cannotDelete?: string[];
+  /** Delete `{object}/assignments/*` before deleting the object itself. */
+  deleteAssignmentsFirst?: boolean;
   requiresAppPermissions?: boolean;
 }
 
@@ -38,11 +44,16 @@ export interface CategoryState {
   selected: boolean;
   objects: IntuneObject[];
   loading: boolean;
+  /** True once a fetch has completed, even if it returned 0 objects. */
+  loaded: boolean;
   error: string | null;
-  deletionProgress: number;
+  /** Objects queued in the current/last deletion run. */
+  runTotal: number;
   deletedCount: number;
   failedCount: number;
   skippedCount: number;
+  /** Objects that failed in the last run (for "Retry failed"). */
+  failedObjectIds: string[];
 }
 
 export interface DeletionLogEntry {

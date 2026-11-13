@@ -8,6 +8,7 @@ import {
   downloadCsv,
 } from "~/lib/intune/service";
 import type { IntuneCategory } from "~/types/intune";
+import { buildDeletionPlan, type DeletionPlanMode } from "~/utils/deletionRun";
 
 export function useIntune() {
   const { accounts } = useMsal();
@@ -18,22 +19,34 @@ export function useIntune() {
   const setCategoryObjects = useNukeTuneStore((s) => s.setCategoryObjects);
   const setDeletionPhase = useNukeTuneStore((s) => s.setDeletionPhase);
   const clearLog = useNukeTuneStore((s) => s.clearLog);
-  const updateCategoryProgress = useNukeTuneStore((s) => s.updateCategoryProgress);
-  const addLogEntry = useNukeTuneStore((s) => s.addLogEntry);
+  const beginDeletionRun = useNukeTuneStore((s) => s.beginDeletionRun);
+  const recordDeletionResult = useNukeTuneStore((s) => s.recordDeletionResult);
 
   const loadCategoryObjects = useCallback(
     async (category: IntuneCategory) => {
+      // A fetch that outlives its session (sign-out or account switch resets
+      // the store) must not write the previous tenant's objects, error or
+      // loading state into the new session.
+      const sessionEpoch = useNukeTuneStore.getState().sessionEpoch;
+      const sessionActive = () =>
+        useNukeTuneStore.getState().sessionEpoch === sessionEpoch;
+
+      // The previous error is kept until the request settles: clearing it up
+      // front would drop a category being retried out of the preview's
+      // failure list (and its unknown-count warning) while it is in flight.
       setCategoryLoading(category.id, true);
-      setCategoryError(category.id, null);
 
       try {
         const objects = await fetchCategoryObjects(category);
-        setCategoryObjects(category.id, objects);
+        if (sessionActive()) {
+          setCategoryObjects(category.id, objects);
+          setCategoryError(category.id, null);
+        }
       } catch (error) {
         const message = error instanceof Error ? error.message : "Failed to fetch objects";
-        setCategoryError(category.id, message);
+        if (sessionActive()) setCategoryError(category.id, message);
       } finally {
-        setCategoryLoading(category.id, false);
+        if (sessionActive()) setCategoryLoading(category.id, false);
       }
     },
     [setCategoryLoading, setCategoryError, setCategoryObjects]
@@ -46,56 +59,51 @@ export function useIntune() {
     await Promise.all(selected.map((cat) => loadCategoryObjects(cat.category)));
   }, [loadCategoryObjects]);
 
+  const runDeletion = useCallback(
+    async (mode: DeletionPlanMode) => {
+      const getState = () => useNukeTuneStore.getState();
+      // The store is reset when the account changes or signs out. A run that
+      // outlives its session must stop issuing deletes and must not write its
+      // progress or completion into the next session's state.
+      const sessionEpoch = getState().sessionEpoch;
+      const sessionActive = () => getState().sessionEpoch === sessionEpoch;
+      const plan = buildDeletionPlan(getState().categories, mode);
+
+      // Single source of truth: the store derives all counts from
+      // recordDeletionResult; nothing here does read-modify-write.
+      beginDeletionRun(plan);
+
+      for (const { categoryId, objectIds } of plan) {
+        if (!sessionActive() || getState().shouldCancel) break;
+
+        const catState = getState().categories.find((c) => c.category.id === categoryId);
+        if (!catState) continue;
+
+        const ids = new Set(objectIds);
+        const objectsToDelete = catState.objects.filter((obj) => ids.has(obj.id));
+        await deleteCategoryObjects(catState.category, objectsToDelete, {
+          onItemComplete: (entry) => {
+            if (sessionActive()) recordDeletionResult(entry);
+          },
+          shouldContinue: () => sessionActive() && !getState().shouldCancel,
+          isPaused: () => getState().isPaused,
+        });
+      }
+
+      if (sessionActive()) setDeletionPhase("complete");
+    },
+    [beginDeletionRun, recordDeletionResult, setDeletionPhase]
+  );
+
   const startDeletion = useCallback(async () => {
-    setDeletionPhase("deleting");
     clearLog();
+    await runDeletion("selected");
+  }, [clearLog, runDeletion]);
 
-    // Get fresh state when called
-    const getState = () => useNukeTuneStore.getState();
-    const selected = getState().categories.filter((cat) => cat.selected && cat.objects.some((obj) => obj.selected));
-
-    for (const catState of selected) {
-      if (getState().shouldCancel) break;
-
-      // Only delete selected objects within the category
-      const objectsToDelete = catState.objects.filter((obj) => obj.selected);
-      await deleteCategoryObjects(catState.category, objectsToDelete, {
-        onProgress: (categoryId, completed, total) => {
-          const progress = total > 0 ? (completed / total) * 100 : 0;
-          const existing = getState().categories.find((c) => c.category.id === categoryId);
-          updateCategoryProgress(
-            categoryId,
-            progress,
-            existing?.deletedCount ?? 0,
-            existing?.failedCount ?? 0,
-            existing?.skippedCount ?? 0
-          );
-        },
-        onItemComplete: (entry) => {
-          addLogEntry(entry);
-          const currentCatState = getState().categories.find(
-            (c) => c.category.id === entry.categoryId
-          );
-          if (currentCatState) {
-            const newDeleted = entry.status === "success" ? currentCatState.deletedCount + 1 : currentCatState.deletedCount;
-            const newFailed = entry.status === "error" ? currentCatState.failedCount + 1 : currentCatState.failedCount;
-            const newSkipped = entry.status === "skipped" ? currentCatState.skippedCount + 1 : currentCatState.skippedCount;
-            updateCategoryProgress(
-              entry.categoryId,
-              currentCatState.deletionProgress,
-              newDeleted,
-              newFailed,
-              newSkipped
-            );
-          }
-        },
-        shouldContinue: () => !getState().shouldCancel,
-        isPaused: () => getState().isPaused,
-      });
-    }
-
-    setDeletionPhase("complete");
-  }, [setDeletionPhase, clearLog, updateCategoryProgress, addLogEntry]);
+  /** Re-runs deletion for only the objects that failed in the last run. */
+  const retryFailed = useCallback(async () => {
+    await runDeletion("failed");
+  }, [runDeletion]);
 
   const exportLog = useCallback(() => {
     const { deletionLog } = useNukeTuneStore.getState();
@@ -120,6 +128,7 @@ export function useIntune() {
     loadCategoryObjects,
     loadSelectedCategories,
     startDeletion,
+    retryFailed,
     exportLog,
     getUserInfo,
   };
