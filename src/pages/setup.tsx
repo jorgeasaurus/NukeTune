@@ -16,7 +16,7 @@ export default function Setup() {
         <div className="relative z-10">
           <Navigation />
 
-          <main className="mx-auto max-w-4xl px-4 pt-32 pb-12">
+          <main className="mx-auto max-w-4xl px-4 pt-44 pb-12 md:pt-32">
             <div className="mb-8">
               <span className="text-xs font-medium tracking-wider text-[var(--danger-red)] uppercase">
                 {"//"} DOCUMENTATION
@@ -136,7 +136,7 @@ export default function Setup() {
                   The signed-in user must have one of the following Intune
                   administrator roles:
                 </p>
-                <div className="mb-6 flex gap-4">
+                <div className="mb-6 flex flex-wrap gap-4">
                   <div className="flex items-center gap-2 rounded-lg border border-[var(--terminal-green)]/30 bg-[var(--terminal-green)]/5 px-4 py-2 text-sm text-[var(--terminal-green)]">
                     <span className="status-dot status-dot-active" />
                     Intune Administrator
@@ -174,6 +174,7 @@ export default function Setup() {
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
+                    aria-hidden="true"
                   >
                     <path
                       strokeLinecap="round"
@@ -217,6 +218,7 @@ export default function Setup() {
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
+                    aria-hidden="true"
                   >
                     <path
                       strokeLinecap="round"
@@ -245,6 +247,7 @@ export default function Setup() {
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
+                    aria-hidden="true"
                   >
                     <path
                       strokeLinecap="round"
