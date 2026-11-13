@@ -95,17 +95,17 @@ export function PreviewModal() {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-2 backdrop-blur-sm sm:p-4">
       <div
         ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
         tabIndex={-1}
-        className="console-modal console-modal-danger flex max-h-[90vh] w-full max-w-4xl flex-col outline-none"
+        className="console-modal console-modal-danger flex max-h-[calc(100dvh-1rem)] w-full max-w-4xl flex-col outline-none max-sm:overflow-y-auto sm:max-h-[90vh]"
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-[var(--console-border)] p-6">
+        <div className="z-20 flex items-center justify-between border-b border-[var(--console-border)] bg-[var(--console-dark)] px-4 py-3 max-sm:sticky max-sm:top-0 sm:p-6">
           <div>
             <div className="flex items-center gap-2 mb-1">
               <span className="status-dot status-dot-warning" />
@@ -113,7 +113,7 @@ export function PreviewModal() {
                 Preview Mode
               </span>
             </div>
-            <h2 id={titleId} className="font-display text-2xl font-bold text-white">
+            <h2 id={titleId} className="font-display text-xl font-bold text-white sm:text-2xl">
               Deletion Preview
             </h2>
           </div>
@@ -140,7 +140,7 @@ export function PreviewModal() {
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-auto p-6">
+        <div className="p-4 sm:min-h-0 sm:flex-1 sm:overflow-auto sm:p-6">
           {busy ? (
             <div className="flex flex-col items-center justify-center py-12">
               <div className="relative h-14 w-14">
@@ -214,7 +214,7 @@ export function PreviewModal() {
                     onClick={() => handleExportInventory("json")}
                     aria-label="Export inventory as JSON"
                     disabled={loadedObjectCount === 0}
-                    className="btn-terminal text-xs"
+                    className="btn-terminal flex-1 text-xs disabled:cursor-not-allowed disabled:opacity-60 sm:flex-none"
                   >
                     JSON
                   </button>
@@ -223,7 +223,7 @@ export function PreviewModal() {
                     onClick={() => handleExportInventory("csv")}
                     aria-label="Export inventory as CSV"
                     disabled={loadedObjectCount === 0}
-                    className="btn-terminal text-xs"
+                    className="btn-terminal flex-1 text-xs disabled:cursor-not-allowed disabled:opacity-60 sm:flex-none"
                   >
                     CSV
                   </button>
@@ -235,10 +235,10 @@ export function PreviewModal() {
         </div>
 
         {/* Footer */}
-        <div className="border-t border-[var(--console-border)] p-6">
-          <div className={`${dryRun ? "banner-warning" : "banner-danger"} mb-4 p-4`}>
+        <div className="border-t border-[var(--console-border)] p-4 sm:p-6">
+          <div className={`${dryRun ? "banner-warning" : "banner-danger"} mb-3 p-3`}>
             <p
-              className={`text-sm ${dryRun ? "text-[var(--warning-amber)]" : "text-[var(--critical-red)]"}`}
+              className={`text-xs sm:text-sm ${dryRun ? "text-[var(--warning-amber)]" : "text-[var(--critical-red)]"}`}
             >
               {dryRun ? (
                 <>
@@ -267,7 +267,7 @@ export function PreviewModal() {
             </p>
           </div>
 
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:gap-4">
             <div className="flex-1">
               <label
                 htmlFor={confirmInputId}
@@ -293,6 +293,9 @@ export function PreviewModal() {
                 aria-describedby={confirmSource === "tenant" ? undefined : confirmHintId}
                 className="input-terminal input-danger"
               />
+              {dryRun && (
+                <p className="mt-1 text-xs text-[var(--text-dim)]">Not required for a dry run.</p>
+              )}
               {confirmSource !== "tenant" && !tenantPending && (
                 <p id={confirmHintId} className="mt-1 text-xs text-[var(--text-muted)]">
                   {confirmSource === "account"
@@ -319,14 +322,14 @@ export function PreviewModal() {
                 </span>
               </label>
               <div className="flex gap-3">
-                <button type="button" onClick={handleClose} className="btn-terminal">
+                <button type="button" onClick={handleClose} className="btn-terminal flex-1 sm:flex-none">
                   Cancel
                 </button>
                 <button
                   type="button"
                   onClick={handleStartDeletion}
                   disabled={!canDelete}
-                  className={dryRun ? "btn-warning" : "btn-danger"}
+                  className={`${dryRun ? "btn-warning" : "btn-danger"} flex-[2] sm:flex-none`}
                 >
                   {busy
                     ? "Loading..."
