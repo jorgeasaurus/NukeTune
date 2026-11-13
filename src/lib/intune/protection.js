@@ -63,6 +63,12 @@ export function getProtectionReason(categoryId, object) {
     }
   }
 
+  // Every tenant has exactly one default branding profile; Graph flags it
+  // with isDefaultProfile (intuneBrandingProfile, beta).
+  if (categoryId === "branding-profiles" && object.isDefaultProfile === true) {
+    return "Default branding profile";
+  }
+
   if (categoryId === "entra-groups" && object.onPremisesSyncEnabled === true) {
     return "Synced from on-premises AD";
   }
