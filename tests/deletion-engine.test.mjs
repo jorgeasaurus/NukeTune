@@ -341,3 +341,24 @@ test("skipped entries deselect the object", () => {
   assert.equal(c.skippedCount, 1);
   assert.equal(c.objects[0].selected, false);
 });
+
+test("default enrollment configurations are protected by their documented type", () => {
+  assert.equal(
+    getProtectionReason("enrollment-configurations", {
+      id: "11111111-2222-3333-4444-555555555555",
+      displayName: "All users and all devices",
+      priority: 3,
+      deviceEnrollmentConfigurationType: "defaultWindowsHelloForBusiness",
+    }),
+    "Default enrollment configuration",
+  );
+  assert.equal(
+    getProtectionReason("enrollment-configurations", {
+      id: "11111111-2222-3333-4444-555555555555",
+      displayName: "Custom ESP",
+      priority: 3,
+      deviceEnrollmentConfigurationType: "windows10EnrollmentCompletionPageConfiguration",
+    }),
+    null,
+  );
+});
