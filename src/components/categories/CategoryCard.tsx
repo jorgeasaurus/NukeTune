@@ -33,7 +33,8 @@ const dangerStyles = {
 };
 
 export function CategoryCard({ categoryState, onToggle }: CategoryCardProps) {
-  const { category, selected, objects, loading, error } = categoryState;
+  const { category, selected, objects, loading, loaded, error } = categoryState;
+  const protectedCount = objects.filter((obj) => obj._protectedReason).length;
   const styles = dangerStyles[category.dangerLevel];
   const isDisabled = category.requiresAppPermissions;
 
@@ -81,16 +82,21 @@ export function CategoryCard({ categoryState, onToggle }: CategoryCardProps) {
             <p className="mt-3 text-xs text-[var(--danger-red)]">{error}</p>
           )}
 
-          {!isDisabled && !loading && !error && objects.length > 0 && (
+          {!isDisabled && !loading && !error && loaded && (
             <p className="mt-3 text-xs font-medium text-white">
               <span className="font-mono text-[var(--terminal-green)]">
                 {objects.length}
               </span>{" "}
               object{objects.length !== 1 ? "s" : ""} found
+              {protectedCount > 0 && (
+                <span className="ml-1 text-[var(--warning-amber)]">
+                  ({protectedCount} protected)
+                </span>
+              )}
             </p>
           )}
 
-          {!isDisabled && !loading && !error && selected && objects.length === 0 && (
+          {!isDisabled && !loading && !error && selected && !loaded && (
             <p className="mt-3 text-xs text-[var(--text-muted)]">
               No objects loaded yet
             </p>

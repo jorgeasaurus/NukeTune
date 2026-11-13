@@ -2,18 +2,20 @@ import { type Configuration, LogLevel } from "@azure/msal-browser";
 import {
   COMMERCIAL_COMMON_AUTHORITY,
   COMMERCIAL_GRAPH_BASE_URL,
+  resolveRedirectUri,
 } from "./commercialCloud";
+
+const redirectUri = resolveRedirectUri(
+  typeof window !== "undefined" ? window.location.origin : undefined,
+  process.env.NEXT_PUBLIC_MSAL_REDIRECT_URI,
+);
 
 export const msalConfig: Configuration = {
   auth: {
     clientId: process.env.NEXT_PUBLIC_MSAL_CLIENT_ID ?? "",
     authority: COMMERCIAL_COMMON_AUTHORITY,
-    redirectUri:
-      process.env.NEXT_PUBLIC_MSAL_REDIRECT_URI ??
-      (typeof window !== "undefined" ? window.location.origin : ""),
-    postLogoutRedirectUri:
-      process.env.NEXT_PUBLIC_MSAL_REDIRECT_URI ??
-      (typeof window !== "undefined" ? window.location.origin : ""),
+    redirectUri,
+    postLogoutRedirectUri: redirectUri,
     navigateToLoginRequestUrl: true,
   },
   cache: {
