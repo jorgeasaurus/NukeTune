@@ -1,4 +1,3 @@
-import Head from "next/head";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -7,6 +6,7 @@ import { useState } from "react";
 import { SignInButton, CloudEnvironmentSelector } from "~/components/auth";
 import { GradientBackground } from "~/components/ui/GradientBackground";
 import { Navigation } from "~/components/ui/Navigation";
+import { PageTitle } from "~/components/ui/PageMeta";
 import { signIn } from "~/lib/auth/authUtils";
 
 export default function Home() {
@@ -30,13 +30,7 @@ export default function Home() {
 
   return (
     <>
-      <Head>
-        <title>NukeTune - Intune Environment Reset Tool</title>
-        <meta
-          name="description"
-          content="Reset Microsoft Intune tenants in the Global Commercial cloud"
-        />
-      </Head>
+      <PageTitle route="/" />
 
       <div className="relative min-h-screen bg-[var(--void-black)]">
         <GradientBackground />

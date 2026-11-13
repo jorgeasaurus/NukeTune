@@ -1,14 +1,12 @@
-import Head from "next/head";
 import Link from "next/link";
 import { GradientBackground } from "~/components/ui/GradientBackground";
 import { Navigation } from "~/components/ui/Navigation";
+import { PageTitle } from "~/components/ui/PageMeta";
 
 export default function Setup() {
   return (
     <>
-      <Head>
-        <title>Setup Guide - NukeTune</title>
-      </Head>
+      <PageTitle route="/setup" />
 
       <div className="min-h-screen bg-[var(--void-black)]">
         <GradientBackground />
