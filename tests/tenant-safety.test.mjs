@@ -155,3 +155,27 @@ test("modal focus trap wraps Tab at the edges and pulls stray focus inside", asy
   assert.equal(getWrappedFocusIndex(0, 1, false), 0);
   assert.equal(getWrappedFocusIndex(0, 0, false), null);
 });
+
+test("guest accounts never fall back to their home UPN domain", async () => {
+  const { isGuestAccount } = await import("../src/lib/graph/tenantIdentity.js");
+  const HOME = "11111111-1111-1111-1111-111111111111";
+  const RESOURCE = "22222222-2222-2222-2222-222222222222";
+
+  assert.equal(isGuestAccount({ homeAccountId: `oid.${HOME}`, tenantId: HOME.toUpperCase() }), false);
+  assert.equal(isGuestAccount({ homeAccountId: `oid.${HOME}`, tenantId: RESOURCE }), true);
+  assert.equal(isGuestAccount({ homeAccountId: "no-separator", tenantId: RESOURCE }), false);
+  assert.equal(isGuestAccount(null), false);
+
+  assert.deepEqual(
+    getConfirmationPhrase({ tenantDomain: null, username: "a@home.com", isGuest: true }),
+    { phrase: "DELETE", source: "generic" },
+  );
+  assert.deepEqual(
+    getConfirmationPhrase({ tenantDomain: "resource.com", username: "a@home.com", isGuest: true }),
+    { phrase: "resource.com", source: "tenant" },
+  );
+  assert.equal(
+    formatTenantLabel({ tenantId: RESOURCE, username: "a@home.com", isGuest: true }),
+    `Tenant ${RESOURCE}`,
+  );
+});

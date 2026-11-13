@@ -24,17 +24,24 @@ export function useIntune() {
 
   const loadCategoryObjects = useCallback(
     async (category: IntuneCategory) => {
+      // A fetch that outlives its session (sign-out or account switch resets
+      // the store) must not write the previous tenant's objects, error or
+      // loading state into the new session.
+      const sessionEpoch = useNukeTuneStore.getState().sessionEpoch;
+      const sessionActive = () =>
+        useNukeTuneStore.getState().sessionEpoch === sessionEpoch;
+
       setCategoryLoading(category.id, true);
       setCategoryError(category.id, null);
 
       try {
         const objects = await fetchCategoryObjects(category);
-        setCategoryObjects(category.id, objects);
+        if (sessionActive()) setCategoryObjects(category.id, objects);
       } catch (error) {
         const message = error instanceof Error ? error.message : "Failed to fetch objects";
-        setCategoryError(category.id, message);
+        if (sessionActive()) setCategoryError(category.id, message);
       } finally {
-        setCategoryLoading(category.id, false);
+        if (sessionActive()) setCategoryLoading(category.id, false);
       }
     },
     [setCategoryLoading, setCategoryError, setCategoryObjects]
