@@ -1,5 +1,5 @@
 /**
- * @typedef {{ id: string, selected?: boolean }} SelectableObject
+ * @typedef {{ id: string, selected?: boolean, _protectedReason?: string }} SelectableObject
  * @typedef {SelectableObject & { categoryId: string, [key: string]: unknown }} CategorizedObject
  * @typedef {{ categoryId: string, objectId: string }} ObjectSelectionTarget
  */
@@ -51,6 +51,17 @@ export function getObjectSelectionTargets(objects) {
 }
 
 /**
+ * Protected objects (built-in, default or system-managed) can never be
+ * selected for deletion.
+ *
+ * @param {SelectableObject} object
+ * @returns {boolean}
+ */
+export function isSelectableObject(object) {
+  return !object._protectedReason;
+}
+
+/**
  * @template {SelectableObject} T
  * @param {readonly T[]} objects
  * @param {readonly string[]} objectIds
@@ -61,6 +72,39 @@ export function setObjectSelection(objects, objectIds, selected) {
   const selectedIds = new Set(objectIds);
 
   return objects.map((object) =>
-    selectedIds.has(object.id) ? { ...object, selected } : object,
+    selectedIds.has(object.id)
+      ? { ...object, selected: selected && isSelectableObject(object) }
+      : object,
   );
+}
+
+/**
+ * Toggles one object, leaving protected objects deselected.
+ *
+ * @template {SelectableObject} T
+ * @param {readonly T[]} objects
+ * @param {string} objectId
+ * @returns {T[]}
+ */
+export function toggleObjectSelection(objects, objectId) {
+  return objects.map((object) =>
+    object.id === objectId
+      ? { ...object, selected: !object.selected && isSelectableObject(object) }
+      : object,
+  );
+}
+
+/**
+ * Initial selection for freshly fetched objects: everything except
+ * protected objects.
+ *
+ * @template {SelectableObject} T
+ * @param {readonly T[]} objects
+ * @returns {T[]}
+ */
+export function selectAllSelectable(objects) {
+  return objects.map((object) => ({
+    ...object,
+    selected: isSelectableObject(object),
+  }));
 }
