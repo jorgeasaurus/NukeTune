@@ -5,6 +5,7 @@ import { useRouter } from "next/router";
 import { useState } from "react";
 import { SignInButton, CloudEnvironmentSelector } from "~/components/auth";
 import { signIn } from "~/lib/auth/authUtils";
+import { SignInErrorAlert, getSignInErrorMessage } from "./SignInErrorAlert";
 
 const navLinkClass =
   "rounded-md px-3 py-2 text-xs font-medium uppercase tracking-wider text-[var(--text-dim)] transition-colors hover:bg-white/5 hover:text-white";
@@ -13,6 +14,7 @@ export function Navigation() {
   const isAuthenticated = useIsAuthenticated();
   const router = useRouter();
   const [showCloudSelector, setShowCloudSelector] = useState(false);
+  const [signInError, setSignInError] = useState<string | null>(null);
 
   async function handleSignIn() {
     setShowCloudSelector(false);
@@ -21,6 +23,7 @@ export function Navigation() {
       void router.push("/dashboard");
     } catch (error) {
       console.error("Sign in error:", error);
+      setSignInError(getSignInErrorMessage(error));
     }
   }
 
@@ -77,12 +80,24 @@ export function Navigation() {
               </Link>
             ) : (
               <SignInButton
-                onClick={() => setShowCloudSelector(true)}
+                onClick={() => {
+                  setSignInError(null);
+                  setShowCloudSelector(true);
+                }}
                 className="btn-terminal flex items-center gap-2 rounded-lg px-4 py-2 text-xs"
               />
             )}
           </div>
         </nav>
+        {signInError && (
+          // Opaque backing so the alert stays readable over page content.
+          <div className="nav-console mt-2 rounded-lg">
+            <SignInErrorAlert
+              message={signInError}
+              onDismiss={() => setSignInError(null)}
+            />
+          </div>
+        )}
       </div>
 
       <CloudEnvironmentSelector

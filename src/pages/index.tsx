@@ -7,14 +7,25 @@ import { SignInButton, CloudEnvironmentSelector } from "~/components/auth";
 import { GradientBackground } from "~/components/ui/GradientBackground";
 import { Navigation } from "~/components/ui/Navigation";
 import { PageTitle } from "~/components/ui/PageMeta";
+import {
+  SignInErrorAlert,
+  getSignInErrorMessage,
+} from "~/components/ui/SignInErrorAlert";
 import { signIn } from "~/lib/auth/authUtils";
+
+type SignInOrigin = "hero" | "footer";
 
 export default function Home() {
   const isAuthenticated = useIsAuthenticated();
   const router = useRouter();
   const [showCloudSelector, setShowCloudSelector] = useState(false);
+  // Which CTA started sign-in, so a failure is shown next to that button.
+  const [signInOrigin, setSignInOrigin] = useState<SignInOrigin>("hero");
+  const [signInError, setSignInError] = useState<string | null>(null);
 
-  const handleSignInClick = () => {
+  const handleSignInClick = (origin: SignInOrigin) => {
+    setSignInOrigin(origin);
+    setSignInError(null);
     setShowCloudSelector(true);
   };
 
@@ -25,8 +36,18 @@ export default function Home() {
       void router.push("/dashboard");
     } catch (error) {
       console.error("Sign in error:", error);
+      setSignInError(getSignInErrorMessage(error));
     }
   };
+
+  const renderSignInError = (origin: SignInOrigin) =>
+    signInError && signInOrigin === origin ? (
+      <SignInErrorAlert
+        message={signInError}
+        onDismiss={() => setSignInError(null)}
+        className="mx-auto mt-4 max-w-lg"
+      />
+    ) : null;
 
   return (
     <>
@@ -74,7 +95,7 @@ export default function Home() {
                   </Link>
                 ) : (
                   <SignInButton
-                    onClick={handleSignInClick}
+                    onClick={() => handleSignInClick("hero")}
                     className="btn-terminal inline-flex items-center justify-center gap-2 rounded-lg px-8 py-4 text-base"
                   />
                 )}
@@ -98,6 +119,7 @@ export default function Home() {
                   Documentation
                 </Link>
               </div>
+              {renderSignInError("hero")}
             </div>
           </section>
 
@@ -631,10 +653,11 @@ export default function Home() {
                   </Link>
                 ) : (
                   <SignInButton
-                    onClick={handleSignInClick}
+                    onClick={() => handleSignInClick("footer")}
                     className="btn-terminal inline-flex items-center gap-2 rounded-lg px-8 py-4 text-base"
                   />
                 )}
+                {renderSignInError("footer")}
               </div>
             </div>
           </section>
