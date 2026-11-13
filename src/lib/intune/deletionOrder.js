@@ -5,8 +5,14 @@
  * - devices first (they reference policies, apps, categories, profiles);
  * - role assignments before role definitions (a custom role cannot be
  *   deleted while it is assigned);
+ * - policy sets before anything they bundle (apps, app configuration and
+ *   protection policies, device configurations, compliance policies,
+ *   Autopilot profiles, enrollment configurations);
  * - app configurations / protection policies before the apps they target;
- * - compliance policies before notification message templates;
+ * - compliance policies before the compliance scripts and notification
+ *   message templates they reference;
+ * - Settings Catalog and intents (baselines, endpoint security) before the
+ *   reusable settings they reference;
  * - every policy, app and script before assignment filters, groups and
  *   scope tags, which they reference.
  */
@@ -15,18 +21,28 @@ export const DELETION_ORDER = [
   "autopilot-devices",
   "role-assignments",
   "role-definitions",
+  "policy-sets",
   "autopilot-profiles",
   "app-configurations",
+  "managed-app-configurations",
   "app-protection-ios",
   "app-protection-android",
+  "app-protection-windows-mam",
   "app-protection-windows",
+  "wip-mdm-policies",
   "mobile-apps",
   "device-configurations",
   "configuration-policies",
   "compliance-policies",
   "compliance-policies-v2",
+  "compliance-scripts",
   "group-policy-configurations",
   "security-baselines",
+  "reusable-policy-settings",
+  "feature-update-profiles",
+  "quality-update-profiles",
+  "quality-update-policies",
+  "driver-update-profiles",
   "powershell-scripts",
   "shell-scripts",
   "remediation-scripts",
@@ -35,6 +51,7 @@ export const DELETION_ORDER = [
   "terms-and-conditions",
   "conditional-access",
   "notification-templates",
+  "branding-profiles",
   "assignment-filters",
   "device-categories",
   "entra-groups",
